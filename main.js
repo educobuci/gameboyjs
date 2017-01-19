@@ -28,23 +28,34 @@ class Cpu {
     };
     this.rom = rom;
     this.opCodes = {
+      // LD HL nn
+      0x21: () => { this.reg.l = this._read8(this.reg.pc); this.reg.h = this._read8(this.reg.pc+1); this.reg.pc += 2 },
       // LD SP nn
-      0x31: () => this.reg.sp = this._read16()
+      0x31: () => { this.reg.sp = this._read16(this.reg.pc); this.reg.pc += 2 },
+      // XOR A
+      0xAF: () => { this.reg.a = 0; }
     }
-    
   }
   tick() {
-    var instruction = this.rom[this.reg.pc];
-    this.opCodes[instruction]();
+    var code = this.rom[this.reg.pc++];
+    var instruction = this.opCodes[code];
+    if (instruction) {
+      instruction();
+    } else {
+      throw("Instruction not found: " + instruction + " - 0x" + code.toString(16));
+    }
   }
   // Reads the next 16-bit
-  _read16(register) {
-    const val = this.rom[this.reg.pc+2] | this.rom[this.reg.pc+1] << 8;
-    this.reg.pc += 2;
-    return val;
+  _read16(address) {
+    return this.rom[address+1] | this.rom[address] << 8;
+  }
+  _read8(address) {
+    return this.rom[address];
   }
 }
 
 let cpu = new Cpu(biosRom);
-cpu.tick();
-console.dir(cpu.reg);
+while (true) {
+  cpu.tick();
+  console.dir(cpu.reg); 
+}
