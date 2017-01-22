@@ -31,7 +31,7 @@ class Cpu {
       // LD SP nn
       0x31: () => { this.reg.sp = this.mem.read16(this.reg.pc); this.reg.pc += 2 },
       // LDD, (HL) A
-      0x32: () => { this.mem.write(this.reg.l | this.reg.h << 8, this.reg.a); },
+      0x32: () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); },
       // XOR A
       0xAF: () => { this.reg.a = 0; }
     }
@@ -44,6 +44,15 @@ class Cpu {
     } else {
       throw("Instruction not found: 0x" + code.toString(16));
     }
+  }
+  _loadWord(address) {
+    return this.reg[address[1]] | this.reg[address[0]] << 8
+  }
+  _writeWord(address, value) {
+    let r1 = address[0];
+    let r2 = address[1];
+    this.reg[r1] = (value >> 8) & 0xFF;
+    this.reg[r2] = value & 0xFF;
   }
 }
 
