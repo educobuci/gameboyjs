@@ -14,48 +14,54 @@ const biosRom = new Uint8Array([
 0xDC, 0xCC, 0x6E, 0xE6, 0xDD, 0xDD, 0xD9, 0x99, 0xBB, 0xBB, 0x67, 0x63, 0x6E, 0x0E, 0xEC, 0xCC,
 0xDD, 0xDC, 0x99, 0x9F, 0xBB, 0xB9, 0x33, 0x3E, 0x3C, 0x42, 0xB9, 0xA5, 0xB9, 0xA5, 0x42, 0x3C,
 0x21, 0x04, 0x01, 0x11, 0xA8, 0x00, 0x1A, 0x13, 0xBE, 0x20, 0xFE, 0x23, 0x7D, 0xFE, 0x34, 0x20,
-0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50,
-0x0A
+0xF5, 0x06, 0x19, 0x78, 0x86, 0x23, 0x05, 0x20, 0xFB, 0x86, 0x20, 0xFE, 0x3E, 0x01, 0xE0, 0x50
 ]);
 
-
 class Cpu {
-  constructor(rom){
+  constructor(memoryMap) {
+    this.mem = memoryMap;
     this.reg = {
       a:0, b:0, c:0, d:0, e:0, h:0, l:0, f:0,    // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
       m:0, t:0                                   // Clock for last instr
     };
-    this.rom = rom;
     this.opCodes = {
       // LD HL nn
-      0x21: () => { this.reg.l = this._read8(this.reg.pc); this.reg.h = this._read8(this.reg.pc+1); this.reg.pc += 2 },
+      0x21: () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1); this.reg.pc += 2 },
       // LD SP nn
-      0x31: () => { this.reg.sp = this._read16(this.reg.pc); this.reg.pc += 2 },
+      0x31: () => { this.reg.sp = this.mem.read16(this.reg.pc); this.reg.pc += 2 },
+      // LDD, (HL) A
+      0x32: () => { this.mem.write(this.reg.l | this.reg.h << 8, this.reg.a); },
       // XOR A
       0xAF: () => { this.reg.a = 0; }
     }
   }
   tick() {
-    var code = this.rom[this.reg.pc++];
+    var code = this.mem.read8(this.reg.pc++);
     var instruction = this.opCodes[code];
     if (instruction) {
       instruction();
     } else {
-      throw("Instruction not found: " + instruction + " - 0x" + code.toString(16));
+      throw("Instruction not found: 0x" + code.toString(16));
     }
-  }
-  // Reads the next 16-bit
-  _read16(address) {
-    return this.rom[address+1] | this.rom[address] << 8;
-  }
-  _read8(address) {
-    return this.rom[address];
   }
 }
 
-let cpu = new Cpu(biosRom);
-while (true) {
-  cpu.tick();
-  console.dir(cpu.reg); 
+class MemoryMap {
+  constructor() { 
+    this.memory = new Uint8Array(64 * 1024);
+    this.memory.fill(0xFF);
+  }
+  loadRom(rom) {
+    this.memory.set(rom);
+  }
+  read8(address) {
+    return this.memory[address];
+  }
+  read16(address) {
+    return this.read8(address+1) | this.read8(address) << 8;
+  }
+  write(address, value) {
+    this.memory[address] = value;
+  }
 }

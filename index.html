@@ -1,0 +1,99 @@
+<html>
+<head>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" />
+  <style type="text/css" media="screen">
+    #code, .code {
+      font-family:Monaco;
+    }
+  </style>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="cpu.js"></script>
+  <script src="index.js"></script>
+</head>
+<body>
+  <div class="container">
+    <div class="page-header">
+      <h3>Gameboy JS</h3>
+    </div>
+    
+    <div class="commands">
+      <button id="run" type="button" class="btn btn-success">Run</button>
+      <button id="step" type="button" class="btn btn-primary">Step</button>
+      <button id="reset" type="button" class="btn btn-warning">Reset</button>
+    </div>
+    <br />
+    <div class="row code">
+      <div class="col-md-6">
+        <table class="table table-bordered table-condensed">
+          <caption>Registers</caption>
+          <tr>
+            <th scope="row">A</td>
+            <td id="reg_a">0x01</td>
+            <td id="reg_dec_a">0</td>
+          </tr>
+          <tr>
+            <th scope="row">B</td>
+            <td id="reg_b">0x01</td>
+            <td id="reg_dec_b">0</td>
+          </tr>
+          <tr>
+            <th scope="row">C</td>
+            <td id="reg_c">0x01</td>
+            <td id="reg_dec_c">0</td>
+          </tr>
+          <tr>
+            <th scope="row">D</td>
+            <td id="reg_d">0x01</td>
+            <td id="reg_dec_d">0</td>
+          </tr>
+          <tr>
+            <th scope="row">E</td>
+            <td id="reg_e">0x01</td>
+            <td id="reg_dec_e">0</td>
+          </tr>
+          <tr>
+            <th scope="row">H</td>
+            <td id="reg_h">0x01</td>
+            <td id="reg_dec_h">0</td>
+          </tr>
+          <tr>
+            <th scope="row">L</td>
+            <td id="reg_l">0x01</td>
+            <td id="reg_dec_l">0</td>
+          </tr>
+          <tr>
+            <th scope="row">F</td>
+            <td id="reg_f">0x01</td>
+            <td id="reg_dec_f">0</td>
+          </tr>
+        </table>
+      </div>
+      <div class="col-md-6">
+        <table class="table table-bordered table-condensed">
+          <caption>Counters/Flags</caption>
+          <tr>
+            <th scope="row">PC</td>
+            <td id="reg_pc">0x01</td>
+            <td id="reg_dec_pc">0</td>
+          </tr>
+          <tr>
+            <th scope="row">SP</td>
+            <td id="reg_sp">0x01</td>
+            <td id="reg_dec_sp">0</td>
+          </tr>
+        </table>
+      </div>
+    </div>    
+    <h4>Memory</h4>
+    <div id="memtabs" class="btn-group btn-group-justified" role="group">
+      <a class="btn btn-default">ROM</a>
+      <a class="btn btn-default">VRAM</a>
+      <a class="btn btn-default">RAM</a>
+    </div>
+    
+    <div class="memory">
+      <p id="code"></p>
+    </div>
+  </div>
+</body>
+</html>
