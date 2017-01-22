@@ -27,7 +27,13 @@ class Cpu {
     };
     this.opCodes = {
       //JR NZ,n
-      0x20: () => { if(this.reg.z !== 0) this.reg.pc -= (0xFF - this.mem.read8(this.reg.pc)) },
+      0x20: () => {
+        if(this.reg.z !== 0) {
+          this.reg.pc -= (0xFF - this.mem.read8(this.reg.pc))
+        } else {
+          this.reg.pc++;
+        }
+      },
       // LD HL nn
       0x21: () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1); this.reg.pc += 2 },
       // LD SP nn
@@ -38,6 +44,7 @@ class Cpu {
       0xAF: () => { this.reg.a = 0; },
       // Prefix
       0xCB: () => { this.tick(this.prefixOpCodes); },
+      
     }
     this.prefixOpCodes = {
       // BIT 7, H
