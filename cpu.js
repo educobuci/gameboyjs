@@ -21,11 +21,13 @@ class Cpu {
   constructor(memoryMap) {
     this.mem = memoryMap;
     this.reg = {
-      a:0, b:0, c:0, d:0, e:0, h:0, l:0, f:0,    // 8-bit registers
+      a:0, b:0, c:0, d:0, e:0, h:0, l:0, z:0,    // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
       m:0, t:0                                   // Clock for last instr
     };
     this.opCodes = {
+      //JR NZ,n
+      0x20: () => { if(this.reg.z !== 0) this.reg.pc -= (0xFF - this.mem.read8(this.reg.pc)) },
       // LD HL nn
       0x21: () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1); this.reg.pc += 2 },
       // LD SP nn
@@ -33,16 +35,24 @@ class Cpu {
       // LDD, (HL) A
       0x32: () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); },
       // XOR A
-      0xAF: () => { this.reg.a = 0; }
+      0xAF: () => { this.reg.a = 0; },
+      // Prefix
+      0xCB: () => { this.tick(this.prefixOpCodes); },
+    }
+    this.prefixOpCodes = {
+      // BIT 7, H
+      0x7C: () => { this.reg.z = (this.reg.h & 0x80) ? 1 : 0; }
     }
   }
-  tick() {
+  tick(codes = this.opCodes) {
     var code = this.mem.read8(this.reg.pc++);
-    var instruction = this.opCodes[code];
-    if (instruction) {
-      instruction();
-    } else {
-      throw("Instruction not found: 0x" + code.toString(16));
+    if (code) {
+      var instruction = codes[code];
+      if (instruction) {
+        instruction();
+      } else {
+        throw("Instruction not found: 0x" + code.toString(16));
+      }
     }
   }
   _loadWord(address) {

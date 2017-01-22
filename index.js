@@ -6,12 +6,17 @@ $("document").ready(() => {
     printRegs();
   }
   function run() {
-    step();
-    setTimeout(run, 1000 / 60);
+    while (true) {
+      step();
+    }
   }
   function step() {
-    window.cpu.tick();
-    printRegs();
+    try {
+      window.cpu.tick();
+    } catch (e) {
+      printRegs();
+      throw(e);
+    }
   }
   function bindEvents(){
     $("#memtabs a").click((e) => {
@@ -29,7 +34,7 @@ $("document").ready(() => {
       }
     });
     $("#run").click(() => run());
-    $("#step").click(() => step());
+    $("#step").click(() => { step(); printRegs(); });
     $("#reset").click(() => reset());
   }
   function printMemory(start, end) {
