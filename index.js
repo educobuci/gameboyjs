@@ -37,9 +37,18 @@ $("document").ready(() => {
     $("#step").click(() => { step(); printRegs(); });
     $("#reset").click(() => reset());
   }
-  function printMemory(start, end) {
+  function printMemory(start, end) {    
     const chunk = memoryMap.memory.slice(start, end + 1);
-    $("#code").html(chunk.reduce((b,i) => b + " " + hex(i), ""));
+    // const lines = new Uint8Array(end + 1 - start + 32);
+    // lines.set([...Array(32).keys()])
+    // lines.set(chunk, 32);
+    const lines = "00 01 02 03 04 05 06 07&nbsp;&nbsp;08 09 0A 0B 0C 0D 0E 0F&nbsp;&nbsp;10 11 12 13 14 15 16 17&nbsp;&nbsp;18 19 1A 1B 1C 1D 1E 1F<br/><br/>"
+    $("#code").html(lines + chunk.reduce((b,n,i) => {
+      return b + " " + hex(n) +
+        ((i + 1) % 8 == 0 ? "&nbsp;" : "") +
+        ((i + 1) % 32 == 0 ? "<br />" : "")
+      ;
+    },""));
   }
   function printRegs() {
     const p = (reg) => {

@@ -29,21 +29,37 @@ class Cpu {
       //JR NZ,n
       0x20: () => {
         if(this.reg.z !== 0) {
-          this.reg.pc -= (0xFF - this.mem.read8(this.reg.pc))
+          this.reg.pc -= (0xFF - this.mem.read8(this.reg.pc));
         } else {
           this.reg.pc++;
         }
       },
+      // INC C
+      0x0C: () => { this.reg.c++; },
+      // LD C, n
+      0x0E: () => { this.reg.c = this.mem.read8(this.reg.pc); this.reg.pc++; },
+      // LD (DE), nn
+      0x11: () => { this._writeWord("de", this.mem.read16(this.reg.pc)); this.reg.pc += 2; },
+      // LD (DE), A
+      0x12: () => { this.mem.write(this._loadWord("de"), this.reg.a); },
       // LD HL nn
       0x21: () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1); this.reg.pc += 2 },
       // LD SP nn
       0x31: () => { this.reg.sp = this.mem.read16(this.reg.pc); this.reg.pc += 2 },
+      // LD A, n
+      0x3E: () => { this.reg.a = this.mem.read8(this.reg.pc); this.reg.pc++; },
       // LDD, (HL) A
       0x32: () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); },
+      // LD A, (HL)
+      0x77: () => { this.mem.write(this._loadWord("hl"), this.reg.a); },
       // XOR A
       0xAF: () => { this.reg.a = 0; },
       // Prefix
       0xCB: () => { this.tick(this.prefixOpCodes); },
+      // LD (0xFF00 + n), A
+      0xE0: () => { this.reg.a = this.mem.read8(0xFF00 + this.mem.read8(this.reg.pc)); this.reg.pc ++; },
+      // LD (0xFF00 + C), A
+      0xE2: () => { this.reg.a = this.mem.read8(0xFF00 + this.reg.c); },
       
     }
     this.prefixOpCodes = {
@@ -58,7 +74,7 @@ class Cpu {
       if (instruction) {
         instruction();
       } else {
-        throw("Instruction not found: 0x" + code.toString(16));
+        throw("Instruction not found: 0x" + ("0" + code.toString(16).toUpperCase()).substr(-2));
       }
     }
   }
@@ -76,7 +92,6 @@ class Cpu {
 class MemoryMap {
   constructor() { 
     this.memory = new Uint8Array(64 * 1024);
-    this.memory.fill(0xFF);
   }
   loadRom(rom) {
     this.memory.set(rom);
@@ -85,9 +100,13 @@ class MemoryMap {
     return this.memory[address];
   }
   read16(address) {
-    return this.read8(address+1) | this.read8(address) << 8;
+    return this.read8(address) | this.read8(address + 1) << 8;
   }
   write(address, value) {
-    this.memory[address] = value;
+    if (address > 0x4000) {
+      this.memory[address] = value;
+    } else {
+      throw ("Attempt to write the ROM at " + address + " = " + value);
+    }    
   }
 }
