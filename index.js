@@ -46,6 +46,12 @@ $("document").ready(() => {
     for(reg in window.cpu.reg) {
       p(reg);
     }
+    const opCode = window.memoryMap.read8(window.cpu.reg.pc);
+    const nextCode = window.memoryMap.read8(window.cpu.reg.pc+1);
+    $("#op_code").html(hex(opCode, 2, true));
+    $("#op_code_dec").html(opCode);
+    $("#next_op_code").html(hex(nextCode, 2, true));
+    $("#next_op_code_dec").html(nextCode);
   }
   function hex(value, size = 2, prefix) {
     return (prefix ? "0x" : "") + ("00000000" + value.toString(16).toUpperCase()).substr(size * -1);
