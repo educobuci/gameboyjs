@@ -6,9 +6,10 @@ $("document").ready(() => {
     printRegs();
   }
   function run() {
-    while (true) {
+    while (window.cpu.reg.pc <= 0x000A) {
       step();
     }
+    printRegs();
   }
   function step() {
     try {
