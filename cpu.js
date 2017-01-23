@@ -30,14 +30,8 @@ class Cpu {
       m:0, t:0                                   // Clock for last instr
     };
     this.opCodes = {
-      //JR NZ,n
-      0x20: () => {
-        if(this.reg.z !== 0) {
-          this.reg.pc -= (0xFF - this.mem.read8(this.reg.pc));
-        } else {
-          this.reg.pc++;
-        }
-      },
+      // LD B, n
+      0x06: () => { this.reg.b = this.mem.read8(this.reg.pc); this.reg.pc++; },
       // INC C
       0x0C: () => { this.reg.c++; },
       // LD C, n
@@ -46,22 +40,50 @@ class Cpu {
       0x11: () => { this._writeWord("de", this.mem.read16(this.reg.pc)); this.reg.pc += 2; },
       // LD (DE), A
       0x12: () => { this.mem.write(this._loadWord("de"), this.reg.a); },
+      // RL A
+      0x17: () => {
+        var ci = this.reg.z & 0x10 ? 1 : 0;
+        var co = this.reg.a & 0x80 ? 0x10:0;
+        this.reg.a = (this.reg.a <<1 ) + ci;
+        this.reg.a &= 0xFF;
+        this.reg.z = (this.reg.z & 0xEF) + co;
+      },
       // LD A, (DE)
       0x1A: () => { this.reg.a = this.mem.read8(this._loadWord("de")); },
+      //JR NZ,n
+      0x20: () => {
+        if(this.reg.z !== 0) {
+          this.reg.pc -= (0xFF - this.mem.read8(this.reg.pc));
+        } else {
+          this.reg.pc++;
+        }
+      },
       // LD HL, nn
       0x21: () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1); this.reg.pc += 2 },
       // LD SP, nn
       0x31: () => { this.reg.sp = this.mem.read16(this.reg.pc); this.reg.pc += 2 },
       // LD A, n
-      0x3E: () => { console.warn(this.mem.read8(this.reg.pc)); this.reg.a = this.mem.read8(this.reg.pc); this.reg.pc++; },
+      0x3E: () => { this.reg.a = this.mem.read8(this.reg.pc); this.reg.pc++; },
       // LD (HL-), A
       0x32: () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); },
+      // LD C, A
+      0x4F: () => { this.reg.c = this.reg.a; },
       // LD (HL), A
       0x77: () => { this.mem.write(this._loadWord("hl"), this.reg.a); },
       // XOR A
       0xAF: () => { this.reg.a = 0; },
+      // POP BC
+      0xC1: () => {  },
+      // PUSH BC
+      0xC5: () => { this.reg.sp -= -2; this.mem.write16(this.reg.sp, this._loadWord("bc")); },
       // CB Prefix
       0xCB: () => { this.tick(this.prefixOpCodes); },
+      // CALL nn
+      0xCD: () => {
+        this.reg.sp -= 2;
+        this.mem.write16(this.reg.sp, this.reg.pc+2);
+        this.reg.pc = this.mem.read16(this.reg.pc);
+      },
       // LD (0xFF00 + n), A
       0xE0: () => { this.mem.write(0xFF00 + this.mem.read8(this.reg.pc), this.reg.a); this.reg.pc++; },
       // LD (0xFF00 + C), A
@@ -69,6 +91,15 @@ class Cpu {
       
     }
     this.prefixOpCodes = {
+      // RL C
+      0x11: () => {
+        const ci = this.reg.z & 0x10 ? 1 : 0;
+        const co = this.reg.c & 0x80 ? 0x10 : 0;
+        this.reg.c = (this.reg.c << 1) + ci;
+        this.reg.c &= 0xFF;
+        this.reg.z = (this.reg.c) ? 0 : 0x80;
+        this.reg.z = (this.reg.z & 0xEF) + co;
+      },
       // BIT 7, H
       0x7C: () => { this.reg.z = (this.reg.h & 0x80) ? 1 : 0; }
     }
@@ -113,6 +144,10 @@ class MemoryMap {
       this.memory[address] = value;
     } else {
       throw ("Attempt to write the ROM at " + address + " = " + value);
-    }    
+    }
+  }
+  write16(address, value) {
+    this.write(address, (value >> 8) & 0xFF);
+    this.write(address+1, value & 0xFF);
   }
 }

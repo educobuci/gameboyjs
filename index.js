@@ -32,6 +32,9 @@ $("document").ready(() => {
         case "RAM":
           printMemory(0xC000, 0xDFFF);
           break;
+        case "ZRAM":
+          printMemory(0xE000, 0xFFFF);
+          break;
       }
     });
     $("#run").click(() => run());
