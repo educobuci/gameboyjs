@@ -73,7 +73,7 @@ class Cpu {
       // XOR A
       0xAF: () => { this.reg.a = 0; },
       // POP BC
-      0xC1: () => {  },
+      0xC1: () => { this._writeWord("bc", this.mem.read16(this.reg.sp)); this.reg.sp += 2; },
       // PUSH BC
       0xC5: () => { this.reg.sp -= 2; this.mem.write16(this.reg.sp, this._loadWord("bc")); },
       // CB Prefix
@@ -147,7 +147,7 @@ class MemoryMap {
     }
   }
   write16(address, value) {
-    this.write(address, (value >> 8) & 0xFF);
-    this.write(address+1, value & 0xFF);
+    this.write(address, value & 0xFF);
+    this.write(address+1, (value >> 8) & 0xFF);
   }
 }
