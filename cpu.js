@@ -75,7 +75,7 @@ class Cpu {
       // POP BC
       0xC1: () => {  },
       // PUSH BC
-      0xC5: () => { this.reg.sp -= -2; this.mem.write16(this.reg.sp, this._loadWord("bc")); },
+      0xC5: () => { this.reg.sp -= 2; this.mem.write16(this.reg.sp, this._loadWord("bc")); },
       // CB Prefix
       0xCB: () => { this.tick(this.prefixOpCodes); },
       // CALL nn
