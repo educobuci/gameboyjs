@@ -30,6 +30,8 @@ class Cpu {
       m:0, t:0                                   // Clock for last instr
     };
     this.opCodes = {
+      // DEC B
+      0x05: () => { this.reg.b--; },
       // LD B, n
       0x06: () => { this.reg.b = this.mem.read8(this.reg.pc); this.reg.pc++; },
       // INC C
@@ -60,6 +62,10 @@ class Cpu {
       },
       // LD HL, nn
       0x21: () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1); this.reg.pc += 2 },
+      // LD (HL+), A
+      0x22: () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl + 1); },
+      // INC HL 
+      0x23: () => { this._writeWord("hl", this._loadWord("hl") + 1); },
       // LD SP, nn
       0x31: () => { this.reg.sp = this.mem.read16(this.reg.pc); this.reg.pc += 2 },
       // LD A, n
@@ -76,6 +82,8 @@ class Cpu {
       0xC1: () => { this._writeWord("bc", this.mem.read16(this.reg.sp)); this.reg.sp += 2; },
       // PUSH BC
       0xC5: () => { this.reg.sp -= 2; this.mem.write16(this.reg.sp, this._loadWord("bc")); },
+      // RET
+      0xC9: () => { this.reg.pc = this.mem.read16(this.reg.sp); this.reg.sp -= 2; },
       // CB Prefix
       0xCB: () => { this.tick(this.prefixOpCodes); },
       // CALL nn

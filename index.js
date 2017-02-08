@@ -1,4 +1,5 @@
 $("document").ready(() => {
+  $( "body" ).append( "<h1>Test</h1>" );
   function reset() {
     window.memoryMap = new MemoryMap();
     memoryMap.loadRom(biosRom);
