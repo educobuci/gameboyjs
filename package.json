@@ -1,0 +1,8 @@
+{
+  "name": "gameboyjs",
+  "version": "0.0.1",
+  "description": "GameBoy Emulator writing in JavaScript",
+  "dependencies": {
+    "chai": "^3.5.0"
+  }
+}
