@@ -38,10 +38,12 @@ class Cpu {
       0x0C: () => { this.reg.c++; },
       // LD C, n
       0x0E: () => { this.reg.c = this.mem.read8(this.reg.pc); this.reg.pc++; },
-      // LD (DE), nn
+      // LD DE, nn
       0x11: () => { this._writeWord("de", this.mem.read16(this.reg.pc)); this.reg.pc += 2; },
       // LD (DE), A
       0x12: () => { this.mem.write(this._loadWord("de"), this.reg.a); },
+      // INC DE
+      0x13: () => { this._writeWord("de", this._loadWord("de") + 1); },
       // RL A
       0x17: () => {
         var ci = this.reg.z & 0x10 ? 1 : 0;
@@ -72,10 +74,14 @@ class Cpu {
       0x3E: () => { this.reg.a = this.mem.read8(this.reg.pc); this.reg.pc++; },
       // LD (HL-), A
       0x32: () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); },
+      // DEC A
+      0x3D: () => { this.reg.a -= 1; },
       // LD C, A
       0x4F: () => { this.reg.c = this.reg.a; },
       // LD (HL), A
       0x77: () => { this.mem.write(this._loadWord("hl"), this.reg.a); },
+      //LD A, E
+      0x7B: () => { this.reg.a = this.reg.e },
       // XOR A
       0xAF: () => { this.reg.a = 0; },
       // POP BC
@@ -85,7 +91,10 @@ class Cpu {
       // RET
       0xC9: () => { this.reg.pc = this.mem.read16(this.reg.sp); this.reg.sp -= 2; },
       // CB Prefix
-      0xCB: () => { this.tick(this.prefixOpCodes); },
+      0xCB: () => { 
+        //console.log("CB Call at: ", this.mem.read16(this.reg.pc).toString(16).toUpperCase().substr(-2));
+        this.tick(this.prefixOpCodes);
+      },
       // CALL nn
       0xCD: () => {
         this.reg.sp -= 2;
@@ -96,7 +105,23 @@ class Cpu {
       0xE0: () => { this.mem.write(0xFF00 + this.mem.read8(this.reg.pc), this.reg.a); this.reg.pc++; },
       // LD (0xFF00 + C), A
       0xE2: () => { this.mem.write(0xFF00 + this.reg.c, this.reg.a); },
-      
+      // LD (nn), A
+      0xEA: () => { this.mem.write16(this.mem.read16(this.reg.pc), this.reg.a); this.reg.pc += 2; },
+      // CP A n
+      0xFE: () => {
+        var i = this.reg.a;
+        var m = this.mem.read8(this.reg.pc);
+        i -= m;
+        this.reg.pc++;
+        this.reg.f = (i < 0) ? 0x50 : 0x40;
+        i &= 255;
+        if (!i) {
+          this.reg.f |= 0x80;
+        }
+        if((this.reg.a ^ i ^ m) & 0x10) {
+          this.reg.f |= 0x20;
+        }
+      }
     }
     this.prefixOpCodes = {
       // RL C
