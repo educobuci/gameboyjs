@@ -21,7 +21,7 @@ const biosRom = new Uint8Array([
 0xbb, 0xb9, 0x33, 0x3e, 0x54, 0x45, 0x54, 0x52, 0x49, 0x53, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 
 ]);
 
-class Cpu {
+export class Cpu {
   constructor(memoryMap) {
     this.mem = memoryMap;
     this.reg = {
@@ -156,31 +156,5 @@ class Cpu {
     let r2 = address[1];
     this.reg[r1] = (value >> 8) & 0xFF;
     this.reg[r2] = value & 0xFF;
-  }
-}
-
-class MemoryMap {
-  constructor() { 
-    this.memory = new Uint8Array(64 * 1024);
-  }
-  loadRom(rom) {
-    this.memory.set(rom);
-  }
-  read8(address) {
-    return this.memory[address];
-  }
-  read16(address) {
-    return this.read8(address) | this.read8(address + 1) << 8;
-  }
-  write(address, value) {
-    if (address > 0x4000) {
-      this.memory[address] = value;
-    } else {
-      throw ("Attempt to write the ROM at " + address + " = " + value);
-    }
-  }
-  write16(address, value) {
-    this.write(address, value & 0xFF);
-    this.write(address+1, (value >> 8) & 0xFF);
   }
 }

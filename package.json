@@ -4,7 +4,7 @@
   "description": "GameBoy Emulator",
   "main": "index.js",
   "scripts": {
-    "test": "mocha -u qunit"
+    "test": "mocha -u qunit --require babel-register"
   },
   "repository": {
     "type": "git",
@@ -17,6 +17,11 @@
   },
   "homepage": "https://github.com/educobuci/gameboyjs#readme",
   "dependencies": {
+    "babel": "^6.23.0",
+    "babel-register": "^6.24.1",
     "mocha": "^3.4.2"
+  },
+  "devDependencies": {
+    "babel-preset-es2015": "^6.24.1"
   }
 }

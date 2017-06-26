@@ -1,5 +1,16 @@
-var assert = require('assert');
+import {GameBoy} from '../gameboy.js';
 
-test('ronaldo', function()  {
-    assert.equal("duds", "duds");
+var assert = require('assert');
+let gameBoy = new GameBoy();
+
+test('load', () => {
+  let rom = [];
+  runRom(rom);
+  assert.equal(gameBoy.cpu.reg.pc, 1);
 });
+
+// Helpers
+function runRom (rom) {
+  gameBoy.loadRom(rom);
+  gameBoy.run();
+}
