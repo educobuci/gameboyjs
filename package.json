@@ -1,0 +1,22 @@
+{
+  "name": "gameboyjs",
+  "version": "1.0.0",
+  "description": "GameBoy Emulator",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha -u qunit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/educobuci/gameboyjs.git"
+  },
+  "author": "Eduardo Cobuci",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/educobuci/gameboyjs/issues"
+  },
+  "homepage": "https://github.com/educobuci/gameboyjs#readme",
+  "dependencies": {
+    "mocha": "^3.4.2"
+  }
+}
