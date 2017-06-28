@@ -24,10 +24,12 @@ const biosRom = new Uint8Array([
 export class Cpu {
   constructor(memoryMap) {
     this.mem = memoryMap;
+    this.cycles = 0;
     this.reg = {
-      a:0, b:0, c:0, d:0, e:0, h:0, l:0, z:0,    // 8-bit registers
+      a:0, b:0, c:0, d:0, e:0, f: 0, h:0, l:0,   // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
-      m:0, t:0                                   // Clock for last instr
+      m:0, t:0,                                  // Clock for last instr
+      flags: { z: 0, n: 0, h: 0, c: 0 }
     };
     this.opCodes = {
       // DEC B
@@ -69,7 +71,7 @@ export class Cpu {
       // INC HL 
       0x23: () => { this._writeWord("hl", this._loadWord("hl") + 1); },
       // LD SP, nn
-      0x31: () => { this.reg.sp = this.mem.read16(this.reg.pc); this.reg.pc += 2 },
+      0x31: () => { this.reg.sp = this.mem.read16(this.reg.pc); this.reg.pc += 2; this.cycles += 12; },
       // LD A, n
       0x3E: () => { this.reg.a = this.mem.read8(this.reg.pc); this.reg.pc++; },
       // LD (HL-), A
@@ -83,7 +85,7 @@ export class Cpu {
       //LD A, E
       0x7B: () => { this.reg.a = this.reg.e },
       // XOR A
-      0xAF: () => { this.reg.a = 0; },
+      0xAF: () => { this.reg.a = 0; this.cycles += 4; this.reg.f = 0; },
       // POP BC
       0xC1: () => { this._writeWord("bc", this.mem.read16(this.reg.sp)); this.reg.sp += 2; },
       // PUSH BC
@@ -143,10 +145,12 @@ export class Cpu {
       var instruction = codes[code];
       if (instruction) {
         instruction();
+        return true;
       } else {
         throw("Instruction not found: 0x" + ("0" + code.toString(16).toUpperCase()).substr(-2));
       }
     }
+    return false;
   }
   _loadWord(address) {
     return this.reg[address[1]] | this.reg[address[0]] << 8

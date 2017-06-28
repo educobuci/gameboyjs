@@ -5,13 +5,12 @@ export class GameBoy {
   // Constructor
   constructor() {
     this.memoryMap = new MemoryMap();
+    this.cpu = new Cpu(this.memoryMap);
   }
 
   // Rom load
   loadRom(rom) {
-    this.rom = rom;
-    this.memoryMap.loadRom(this.rom);
-    this.cpu = new Cpu(this.memoryMap);
+    this.memoryMap.loadRom(rom);
   }
 
   // Run the loaded rom
