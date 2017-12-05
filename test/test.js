@@ -26,15 +26,16 @@ test('XOR a (0xAF)', () => {
 	gameBoy.cpu.reg.a = 0x01;
 	gameBoy.cpu.reg.f = 0xFF;
 	run(rom);
-	cpu({ a: 0, clock: 4 });
+	cpu({ a: 0x00, f: 0x80, clock: 4 });
 });
 
 test('XOR b (0xA8)', () => {
 	let rom = [0xA8];
-	gameBoy.cpu.reg.b = 0x01;
+	gameBoy.cpu.reg.a = 0x03;
+	gameBoy.cpu.reg.b = 0x0C;
 	gameBoy.cpu.reg.f = 0xFF;
 	run(rom);
-	cpu({ b: 0, clock: 4 });
+	cpu({ a: 0x0F, f: 0x00, clock: 4 });
 });
 
 // test('XOR A B C D E H L', () => {

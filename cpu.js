@@ -48,13 +48,18 @@ export class Cpu {
 				this.reg.t = t;
 			}
 		}
-				
-		// LD SP, nn
+		let zf = (r) => {
+			this.reg.f = r === 0 ? 0x80 : 0x00;
+		}
+		
+		// LD SP, NN
 		i(0x31, () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 2, 12);
 		
-		// XOR n
-		// Logical exclusive OR n with register A, result in A.
-		i(0xAF, () => { this.reg.a=0; this.reg.f=0 }, 1, 4);
+		// XOR N - Logical exclusive OR n with register A, result in A.
+		// XOR B
+		i(0xA8, () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 1, 4);
+		// XOR A
+		i(0xAF, () => { this.reg.a=0; this.reg.f=0x80 }, 1, 4);
 		
 		return codes;
 	}
