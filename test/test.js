@@ -45,7 +45,7 @@ test('LD HL,NN (0x21)', () => {
   cpu({ h: 0xFF, l: 0xFE, clock: 12, pc: 3 });
 });
 
-test('LD (HL-), A (0x32)', ()=> {
+test('LD (HL-), A (0x32)', () => {
   let rom = [0x32];
   gameBoy.cpu.reg.a = 0xAA;
   gameBoy.cpu.reg.h = 0x9F;
@@ -53,6 +53,12 @@ test('LD (HL-), A (0x32)', ()=> {
   run(rom);
   cpu({ h: 0x9F, l: 0xFE });
   assert.equal(gameBoy.memoryMap.read8(0x9FFF), 0xAA);
+});
+
+test('BIT 7,C (0xCB 0x7C)', () => {
+  let rom = [0xCB, 0x7C];
+  gameBoy.cpu.reg.h = 0x01;
+  run(rom);
 });
 
 // Helpers
