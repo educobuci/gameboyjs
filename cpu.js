@@ -52,6 +52,11 @@ export class Cpu {
 		let zf = (r) => {
 			this.reg.f = r === 0 ? 0x80 : 0x00;
 		};
+		i("JR NZ,N", 0x20, () => {
+		  if ((this.reg.f & 0x80) === 0) {
+		    this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF;
+		  }
+    }, 8, 1);
     // LD N,NN - Put value NN into N
     i("LD HL,NN", 0x21, () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
 		i("LD SP,NN", 0x31, () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);

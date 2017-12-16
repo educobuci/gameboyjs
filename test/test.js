@@ -70,6 +70,20 @@ test('BIT 7,H (0xCB 0x7C) - Zero', () => {
   cpu({ f: 0xA0, clock:12, pc: 2 });
 });
 
+test('JR NZ,N', () => {
+  let rom = [0x20, 0x03];
+  gameBoy.cpu.reg.f = 0x00;
+  run(rom);
+  cpu({clock: 8, pc: 5});
+});
+
+test('JR NZ,N - Zero', () => {
+  let rom = [0x20, 0x03];
+  gameBoy.cpu.reg.f = 0x80;
+  run(rom);
+  cpu({clock: 8, pc: 2});
+});
+
 // Helpers
 function run (rom) {
   gameBoy.loadRom(rom);

@@ -1,6 +1,7 @@
 export class MemoryMap {
   constructor() { 
     this.memory = new Uint8Array(64 * 1024);
+    this.memory.fill(0xFF, 0x8000, 0xA000);
   }
   loadRom(rom) {
     this.memory.set(rom);
