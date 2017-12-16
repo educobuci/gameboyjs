@@ -39,11 +39,11 @@ test('XOR b (0xA8)', () => {
 	cpu({ a: 0x0F, f: 0x00, clock: 4 });
 });
 
-// test('LD HL, nn', () => {
-//   let rom = [0x21, 0xFE, 0xFF];
-//   run(rom);
-//   cpu({ h: 0xFF, l: 0xFE });
-// });
+test('LD HL, nn', () => {
+  let rom = [0x21, 0xFE, 0xFF];
+  run(rom);
+  cpu({ h: 0xFF, l: 0xFE, clock: 12, pc: 3 });
+});
 
 // Helpers
 function run (rom) {

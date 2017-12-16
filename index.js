@@ -1,7 +1,11 @@
-$("document").ready(() => {
+import {MemoryMap} from "./memoryMap";
+import {Cpu} from "./cpu";
+import {BIOS_ROM} from "./bios";
+
+(function() {
   function reset() {
     window.memoryMap = new MemoryMap();
-    memoryMap.loadRom(biosRom);
+    memoryMap.loadRom(BIOS_ROM);
     window.cpu = new Cpu(memoryMap);
     printRegs();
   }
@@ -20,7 +24,7 @@ $("document").ready(() => {
     }
   }
   function bindEvents(){
-    $("#memtabs a").click((e) => {
+    $("#memtabs").find("a").click((e) => {
       const $tab = $(e.target);
       switch ($tab.html()) {
         case "ROM":
@@ -41,7 +45,7 @@ $("document").ready(() => {
     $("#step").click(() => { step(); printRegs(); });
     $("#reset").click(() => reset());
   }
-  function printMemory(start, end) {    
+  function printMemory(start, end) {
     const chunk = memoryMap.memory.slice(start, end + 1);
     // const lines = new Uint8Array(end + 1 - start + 32);
     // lines.set([...Array(32).keys()])
@@ -51,17 +55,17 @@ $("document").ready(() => {
       return b + " " + hex(n) +
         ((i + 1) % 8 === 0 ? "&nbsp;" : "") +
         ((i + 1) % 32 === 0 ? "<br />" : "")
-      ;
+        ;
     },""));
   }
   function printRegs() {
     const p = (reg) => {
       const value = window.cpu.reg[reg];
-      const hexValue = hex(value, reg == "pc" | reg == "sp" ? 4 : 2, true);
+      const hexValue = hex(value, reg === "pc" | reg === "sp" ? 4 : 2, true);
       $("#reg_" + reg).html(hexValue);
       $("#reg_dec_" + reg).html(value);
-    }
-    for(reg in window.cpu.reg) {
+    };
+    for(let reg in window.cpu.reg) {
       p(reg);
     }
     const opCode = window.memoryMap.read8(window.cpu.reg.pc);
@@ -76,4 +80,4 @@ $("document").ready(() => {
   }
   reset();
   bindEvents();
-});
+}());
