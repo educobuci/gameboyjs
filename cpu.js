@@ -5,26 +5,27 @@ export class Cpu {
     this.reg = {
       a:0, b:0, c:0, d:0, e:0, f: 0, h:0, l:0,   // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
-      t:0,		                                   // Clock for last instruction
-			pcs:0,																		 // PC size for last instruction
+      t:0,		                                    // Clock for last instruction
+      pcs:0,																		    // PC size for last instruction
     };
 		this.opCodes = this._loadOpCodes();
   }
   tick(codes = this.opCodes) {
-    var code = this.mem.read8(this.reg.pc++);
+    let code = this.mem.read8(this.reg.pc);
     if (code) {
-      var instruction = codes[code];
+      this.reg.pc++;
+      let instruction = codes[code];
       if (instruction) {
-				console.log("RUNNING ", code);
+        console.log("RUNNING ", code);
         instruction();
-				this.clock += this.reg.t;
-				this.reg.pc += this.reg.pcs;
-				// Clean up
-				this.reg.t = 0;
-				this.reg.pcs = 0;
+        this.clock += this.reg.t;
+        this.reg.pc += this.reg.pcs;
+        // Clean up
+        this.reg.t = 0;
+        this.reg.pcs = 0;
         return true;
       } else {
-				console.log("NOT FOUND");
+        console.log("NOT FOUND");
         throw("Instruction not found: 0x" + ("0" + code.toString(16).toUpperCase()).substr(-2));
       }
     }
@@ -41,25 +42,25 @@ export class Cpu {
   }
 	_loadOpCodes() {
 		let codes = {};
-		let i = (opCode, func, pcs, t) => {
+		let i = (opCode, func, t, pcs = 0) => {
 			codes[opCode] = () => {
 				func();
 				this.reg.pcs = pcs;
 				this.reg.t = t;
 			}
-		}
+		};
 		let zf = (r) => {
 			this.reg.f = r === 0 ? 0x80 : 0x00;
-		}
+		};
 		
 		// LD SP, NN
-		i(0x31, () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 2, 12);
+		i(0x31, () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
 		
 		// XOR N - Logical exclusive OR n with register A, result in A.
 		// XOR B
-		i(0xA8, () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 1, 4);
+		i(0xA8, () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
 		// XOR A
-		i(0xAF, () => { this.reg.a=0; this.reg.f=0x80 }, 1, 4);
+		i(0xAF, () => { this.reg.a=0; this.reg.f=0x80 }, 4);
 		
 		return codes;
 	}
