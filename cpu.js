@@ -9,6 +9,7 @@ export class Cpu {
       pcs:0,																		    // PC size for last instruction
     };
 		this.opCodes = this._loadOpCodes();
+		this.prefixOpCodes = this._loadPrefixOpCodes();
   }
   tick(codes = this.opCodes) {
     let code = this.mem.read8(this.reg.pc);
@@ -58,8 +59,23 @@ export class Cpu {
 		// XOR N - Logical exclusive OR n with register A, result in A.
 		i("XOR B", 0xA8, () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
 		i("XOR A", 0xAF, () => { this.reg.a=0; this.reg.f=0x80 }, 4);
+		// CB
+    i("CB", 0xCB, () => { this.tick(this.prefixOpCodes) }, 4);
 		return codes;
 	}
+  _loadPrefixOpCodes() {
+    let codes = {};
+    let i = (label, opCode, func, t, pcs = 0) => {
+      codes[opCode] = () => {
+        func();
+        this.reg.pcs = pcs;
+        this.reg.t = t;
+      }
+    };
+    // Set zero flag (F/Z) if the 7th bit of the register H is 0. Always set flag half carry (F/H).
+    i("BIT 7,H", 0x7C, () => { this.reg.f = (this.reg.h & 0x80) === 0 ? 0xA0 : 0x20 }, 8);
+    return codes;
+  }
 }
 
 // this.opCodes = {
