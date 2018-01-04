@@ -69,24 +69,31 @@ export class Cpu {
     i("BIT 7,H", 0x7C, () => { this.reg.f = (this.reg.h & 0x80) === 0 ? 0xA0 : 0x20 }, 8);
     return codes;
   }
-  _addInstruction(opCode, label, func, t, pcs = 0) {
+  _addInstruction(opCode, label, func, t, s = 0) {
     this.opCodes[opCode] = () => {
       func();
-      this.reg.pcs = pcs;
+      this.reg.pcs = s;
       this.reg.t = t;
     };
     this.instructions[opCode] = {
       label: label,
       code: this.opCodes[opCode],
       t: t,
-      s: pcs,
+      s: s,
     };
   }
-  disassembly() {
-    let code, i;
+  decompile() {
+    let romInstructions = [];
+    let code, instruction;
     let pc = 0;
-    code = this.mem.read8(pc++);
-    i = this.instructions[code];
+    while(true) {
+      code = this.mem.read8(pc++);
+      instruction = this.instructions[code];
+      if (!code || !instruction) break;
+      romInstructions.push(instruction);
+      pc += instruction.s;
+    }
+    return romInstructions;
   }
 }
 
