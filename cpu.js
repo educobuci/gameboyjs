@@ -2,13 +2,15 @@ export class Cpu {
   constructor(memoryMap) {
     this.mem = memoryMap;
     this.clock = 0;
+    this.instructions = {};
     this.reg = {
       a:0, b:0, c:0, d:0, e:0, f: 0, h:0, l:0,   // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
       t:0,		                                    // Clock for last instruction
       pcs:0,																		    // PC size for last instruction
     };
-		this.opCodes = this._loadOpCodes();
+		this.opCodes = [];
+		this._loadOpCodes();
 		this.prefixOpCodes = this._loadPrefixOpCodes();
   }
   tick(codes = this.opCodes) {
@@ -41,32 +43,18 @@ export class Cpu {
     this.reg[r2] = value & 0xFF;
   }
 	_loadOpCodes() {
-		let codes = {};
-		let i = (label, opCode, func, t, pcs = 0) => {
-			codes[opCode] = () => {
-				func();
-				this.reg.pcs = pcs;
-				this.reg.t = t;
-			}
-		};
+		let i = this._addInstruction.bind(this);
 		let zf = (r) => {
 			this.reg.f = r === 0 ? 0x80 : 0x00;
 		};
-		i("JR NZ,N", 0x20, () => {
-		  if ((this.reg.f & 0x80) === 0) {
-		    this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF;
-		  }
-    }, 8, 1);
-    // LD N,NN - Put value NN into N
-    i("LD HL,NN", 0x21, () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
-		i("LD SP,NN", 0x31, () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
-		i("LD (HL-),A", 0x32, ()=> { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
-		// XOR N - Logical exclusive OR n with register A, result in A.
-		i("XOR B", 0xA8, () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
-		i("XOR A", 0xAF, () => { this.reg.a=0; this.reg.f=0x80 }, 4);
-		// CB
-    i("CB", 0xCB, () => { this.tick(this.prefixOpCodes) }, 4);
-		return codes;
+		i(0x20, "JR NZ,N",  () => { if ((this.reg.f & 0x80) === 0) this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF; }, 8, 1);
+		i(0x21, "LD HL,NN", () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
+		i(0x31, "LD SP,NN", () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
+		i(0x32, "LD HLD,A", () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
+		i(0xA8, "XOR B",    () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
+		i(0xAF, "XOR A",    () => { this.reg.a=0; this.reg.f=0x80 }, 4);
+		// CB prefixed
+    i(0xCB, "CB",       () => { this.tick(this.prefixOpCodes) }, 4);
 	}
   _loadPrefixOpCodes() {
     let codes = {};
@@ -80,6 +68,25 @@ export class Cpu {
     // Set zero flag (F/Z) if the 7th bit of the register H is 0. Always set flag half carry (F/H).
     i("BIT 7,H", 0x7C, () => { this.reg.f = (this.reg.h & 0x80) === 0 ? 0xA0 : 0x20 }, 8);
     return codes;
+  }
+  _addInstruction(opCode, label, func, t, pcs = 0) {
+    this.opCodes[opCode] = () => {
+      func();
+      this.reg.pcs = pcs;
+      this.reg.t = t;
+    };
+    this.instructions[opCode] = {
+      label: label,
+      code: this.opCodes[opCode],
+      t: t,
+      s: pcs,
+    };
+  }
+  disassembly() {
+    let code, i;
+    let pc = 0;
+    code = this.mem.read8(pc++);
+    i = this.instructions[code];
   }
 }
 
