@@ -77,23 +77,24 @@ export class Cpu {
     };
     this.instructions[opCode] = {
       label: label,
+      opCode: opCode,
       code: this.opCodes[opCode],
       t: t,
       s: s,
     };
   }
   decompile() {
-    let romInstructions = [];
+    let decompiledRom = {};
     let code, instruction;
     let pc = 0;
     while(true) {
-      code = this.mem.read8(pc++);
+      code = this.mem.read8(pc);
       instruction = this.instructions[code];
       if (!code || !instruction) break;
-      romInstructions.push(instruction);
-      pc += instruction.s;
+      decompiledRom[pc.toString(10)] = instruction;
+      pc += instruction.s + 1;
     }
-    return romInstructions;
+    return decompiledRom;
   }
 }
 

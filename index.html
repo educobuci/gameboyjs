@@ -1,18 +1,17 @@
 <html>
 <head>
   <link rel="stylesheet" href="./dependencies/bootstrap.min.css" />
-  <style type="text/css" media="screen">
-    #code, .code {
-      font-family:"Lucida Console", Monaco, monospace;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
+
   <script src="./dependencies/jquery.min.js"></script>
+  <script src="./dependencies/jquery-ui.min.js"></script>
+  <script src="./dependencies/vue.js"></script>
   <script src="index.js" type="module"></script>
 </head>
 <body>
   <div class="container">
     <div class="page-header">
-      <h3>Gameboy JS</h3>
+      <h3>GameBoy JS</h3>
     </div>
     
     <div class="commands">
@@ -22,7 +21,15 @@
     </div>
     <br />
     <div class="row code">
-      <div class="col-md-6">
+      <div class="col-md-4">
+        <h4>Debugger</h4>
+        <ul id="debugger">
+          <li v-for="i in instructions">
+            {{ i.label }}
+          </li>
+        </ul>
+      </div>
+      <div class="col-md-4">
         <table class="table table-bordered table-condensed">
           <caption>Registers</caption>
           <tr>
@@ -67,7 +74,7 @@
           </tr>
         </table>
       </div>
-      <div class="col-md-6">
+      <div class="col-md-4">
         <table class="table table-bordered table-condensed">
           <caption>Counters/Flags</caption>
           <tr>

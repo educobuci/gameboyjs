@@ -3,18 +3,50 @@ import {Cpu} from "./cpu";
 import {BIOS_ROM} from "./bios";
 
 (function() {
+  let $debugger = $("#debugger");
+  let decompiledRom = null;
+  let getDecompiledRom = () => {
+    if (decompiledRom === null) {
+      decompiledRom = window.cpu.decompile();
+    }
+    return decompiledRom;
+  };
+  let debuggerVM = null;
+  let getDebugger = () => {
+    if (debuggerVM === null) {
+      debuggerVM = new Vue({
+        el: "#debugger",
+        data: {
+          instructions: getDecompiledRom()
+        }
+      });
+    }
+    return debuggerVM
+  };
+
+  function debug() {
+    let index = Object.keys(getDecompiledRom()).indexOf(window.cpu.reg.pc.toString(10));
+    getDebugger();
+    $("#debugger").find("li")
+      .removeClass("selected")
+      .eq(index)
+      .addClass("selected");
+  }
+
   function reset() {
     window.memoryMap = new MemoryMap();
     memoryMap.loadRom(BIOS_ROM);
     window.cpu = new Cpu(memoryMap);
     printRegs();
   }
+
   function run() {
     while (window.cpu.reg.pc <= 0xFFFF) {
       step();
     }
     printRegs();
   }
+
   function step() {
     try {
       window.cpu.tick();
@@ -23,6 +55,7 @@ import {BIOS_ROM} from "./bios";
       throw(e);
     }
   }
+
   function bindEvents(){
     $("#memtabs").find("a").click((e) => {
       const $tab = $(e.target);
@@ -45,6 +78,7 @@ import {BIOS_ROM} from "./bios";
     $("#step").click(() => { step(); printRegs(); });
     $("#reset").click(() => reset());
   }
+
   function printMemory(start, end) {
     const chunk = memoryMap.memory.slice(start, end + 1);
     // const lines = new Uint8Array(end + 1 - start + 32);
@@ -58,6 +92,7 @@ import {BIOS_ROM} from "./bios";
         ;
     },""));
   }
+
   function printRegs() {
     const p = (reg) => {
       const value = window.cpu.reg[reg];
@@ -74,10 +109,14 @@ import {BIOS_ROM} from "./bios";
     $("#op_code_dec").html(opCode);
     $("#next_op_code").html(hex(nextCode, 2, true));
     $("#next_op_code_dec").html(nextCode);
+    // let index = Object.keys(getDecompiledRom()).indexOf(window.cpu.reg.pc.toString(10));
+    debug();
   }
+
   function hex(value, size = 2, prefix) {
     return (prefix ? "0x" : "") + ("00000000" + value.toString(16).toUpperCase()).substr(size * -1);
   }
+
   reset();
   bindEvents();
 }());
