@@ -10,20 +10,18 @@ export class Cpu {
       t:0,		                                   // Clock for last instruction
       pcs:0,																		 // PC size for last instruction
     };
-		this.opCodes = {};
-		this._loadOpCodes();
-		this.prefixOpCodes = {};
-    this._loadPrefixOpCodes();
+		this._loadInstructions();
+    this._loadPrefixInstructions();
   }
-  tick(codes = this.opCodes, instructions = this.instructions) {
-    let code = this.mem.read8(this.reg.pc);
-    if (code) {
-      let instruction = codes[code]
+  tick(instructions = this.instructions) {
+    const opCode = this.mem.read8(this.reg.pc);
+    if (opCode) {
+      const instruction = instructions[opCode];
       if (instruction) {
         this.reg.pc++;
-        instruction();
-        this.clock += this.reg.t;
-        this.reg.pc += this.reg.pcs;
+        instruction.func();
+        this.clock += instruction.t;
+        this.reg.pc += instruction.s;
         // Clean up
         this.reg.t = 0;
         this.reg.pcs = 0;
@@ -44,7 +42,7 @@ export class Cpu {
     this.reg[r1] = (value >> 8) & 0xFF;
     this.reg[r2] = value & 0xFF;
   }
-	_loadOpCodes() {
+	_loadInstructions() {
 		let i = this._addInstruction.bind(this);
 		let zf = (r) => {
 			this.reg.f = r === 0 ? 0x80 : 0x00;
@@ -56,28 +54,22 @@ export class Cpu {
 		i(0xA8, "xor b",     () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
 		i(0xAF, "xor a",     () => { this.reg.a=0; this.reg.f=0x80 }, 4);
 		// CB prefixed
-    i(0xCB, "prefix",    () => { this.tick(this.prefixOpCodes, this.prefixInstructions) }, 4);
+    i(0xCB, "prefix",    () => { this.tick(this.prefixInstructions) }, 4);
 	}
-  _loadPrefixOpCodes() {
+  _loadPrefixInstructions() {
     // Set zero flag (F/Z) if the 7th bit of the register H is 0. Always set flag half carry (F/H).
     this._addInstruction(
       0x7C, "bit 7, h", () => {
         this.reg.f = (this.reg.h & 0x80) === 0 ? 0xA0 : 0x20
       },
       8, 0,
-      this.prefixOpCodes,
       this.prefixInstructions);
   }
-  _addInstruction(opCode, label, func, t, s = 0, opCodes = this.opCodes, instructions = this.instructions) {
-    opCodes[opCode] = () => {
-      func();
-      this.reg.pcs = s;
-      this.reg.t = t;
-    };
+  _addInstruction(opCode, label, func, t, s = 0, instructions = this.instructions) {
     instructions[opCode] = {
       label: label,
       opCode: opCode,
-      code: opCodes[opCode],
+      func: func,
       t: t,
       s: s
     };
