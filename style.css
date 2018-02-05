@@ -1,0 +1,22 @@
+#code, .code {
+  font-family:"Lucida Console", Monaco, monospace;
+}
+
+/*******************************************************
+* Debugger
+*******************************************************/
+
+#debugger {
+  overflow:scroll;
+  height: 280px;
+  padding: 0;
+  margin: 0;
+}
+
+#debugger .selected {
+  background-color: #EBEBEB;
+}
+
+#debugger li {
+  list-style: none;
+}
