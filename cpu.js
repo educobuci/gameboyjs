@@ -3,20 +3,24 @@ export class Cpu {
     this.mem = memoryMap;
     this.clock = 0;
     this.instructions = {};
+    this.prefixInstructions = {};
     this.reg = {
       a:0, b:0, c:0, d:0, e:0, f: 0, h:0, l:0,   // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
       t:0,		                                    // Clock for last instruction
       pcs:0,																		    // PC size for last instruction
     };
-		this.opCodes = [];
+		this.opCodes = {};
 		this._loadOpCodes();
-		this.prefixOpCodes = this._loadPrefixOpCodes();
+		this.prefixOpCodes = {};
+    this._loadPrefixOpCodes();
+    console.log(this.prefixInstructions);
   }
-  tick(codes = this.opCodes) {
+  tick(codes = this.opCodes, instructions = this.instructions) {
     let code = this.mem.read8(this.reg.pc);
     if (code) {
-      let instruction = codes[code];
+      let instruction = codes[code]
+      console.log(codes, code);
       if (instruction) {
         this.reg.pc++;
         instruction();
@@ -47,54 +51,74 @@ export class Cpu {
 		let zf = (r) => {
 			this.reg.f = r === 0 ? 0x80 : 0x00;
 		};
-		i(0x20, "JR NZ,N",  () => { if ((this.reg.f & 0x80) === 0) this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF; }, 8, 1);
-		i(0x21, "LD HL,NN", () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
-		i(0x31, "LD SP,NN", () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
-		i(0x32, "LD HLD,A", () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
-		i(0xA8, "XOR B",    () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
-		i(0xAF, "XOR A",    () => { this.reg.a=0; this.reg.f=0x80 }, 4);
+		i(0x20, "jr nz, n",  () => { if ((this.reg.f & 0x80) === 0) this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF; }, 8, 1);
+		i(0x21, "ld hl, nn", () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
+		i(0x31, "ld sp, nn", () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
+		i(0x32, "ld hld, a", () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
+		i(0xA8, "xor b",     () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
+		i(0xAF, "xor a",     () => { this.reg.a=0; this.reg.f=0x80 }, 4);
 		// CB prefixed
-    i(0xCB, "CB",       () => { this.tick(this.prefixOpCodes) }, 4);
+    i(0xCB, "prefix",    () => { this.tick(this.prefixOpCodes, this.prefixInstructions) }, 4);
 	}
   _loadPrefixOpCodes() {
-    let codes = {};
-    let i = (label, opCode, func, t, pcs = 0) => {
-      codes[opCode] = () => {
-        func();
-        this.reg.pcs = pcs;
-        this.reg.t = t;
-      }
-    };
     // Set zero flag (F/Z) if the 7th bit of the register H is 0. Always set flag half carry (F/H).
-    i("BIT 7,H", 0x7C, () => { this.reg.f = (this.reg.h & 0x80) === 0 ? 0xA0 : 0x20 }, 8);
-    return codes;
+    this._addInstruction(
+      0x7C, "bit 7, h", () => {
+        this.reg.f = (this.reg.h & 0x80) === 0 ? 0xA0 : 0x20
+      },
+      8, 0,
+      this.prefixOpCodes,
+      this.prefixInstructions);
   }
-  _addInstruction(opCode, label, func, t, s = 0) {
-    this.opCodes[opCode] = () => {
+  _addInstruction(opCode, label, func, t, s = 0, opCodes = this.opCodes, instructions = this.instructions) {
+    opCodes[opCode] = () => {
       func();
       this.reg.pcs = s;
       this.reg.t = t;
     };
-    this.instructions[opCode] = {
+    instructions[opCode] = {
       label: label,
       opCode: opCode,
-      code: this.opCodes[opCode],
+      code: opCodes[opCode],
       t: t,
-      s: s,
+      s: s
     };
   }
+
   decompile() {
     let decompiledRom = {};
     let code, instruction;
     let pc = 0;
     while(true) {
+      let i;
+      let set;
       code = this.mem.read8(pc);
-      instruction = this.instructions[code];
-      if (!code || !instruction) break;
+      // Prefixed instructions
+      if (pc > 0 && this.mem.read8(pc-1) === 0xCB) {
+        set = this.prefixInstructions;
+      } else {
+        set = this.instructions;
+      }
+      i = set[code];
+      if (!code || !i) break;
+      instruction = {
+        opCode: i.opCode,
+        s: i.s,
+        label: this._parseLabel(i, pc)
+      };
       decompiledRom[pc.toString(10)] = instruction;
       pc += instruction.s + 1;
     }
     return decompiledRom;
+  }
+
+  _parseLabel(instruction, pc) {
+    let tokens = instruction.label.split(",").map((t) => { return t.trim() });
+    let wordIndex = tokens.indexOf("nn");
+    if (wordIndex > 0) {
+      tokens[wordIndex] = "$" + this.mem.read16(pc + 1).toString(16).toUpperCase()
+    }
+    return tokens.join(", ");
   }
 }
 

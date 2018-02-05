@@ -94,6 +94,7 @@ import {BIOS_ROM} from "./bios";
   }
 
   function printRegs() {
+    debug();
     const p = (reg) => {
       const value = window.cpu.reg[reg];
       const hexValue = hex(value, reg === "pc" | reg === "sp" ? 4 : 2, true);
@@ -109,8 +110,6 @@ import {BIOS_ROM} from "./bios";
     $("#op_code_dec").html(opCode);
     $("#next_op_code").html(hex(nextCode, 2, true));
     $("#next_op_code_dec").html(nextCode);
-    // let index = Object.keys(getDecompiledRom()).indexOf(window.cpu.reg.pc.toString(10));
-    debug();
   }
 
   function hex(value, size = 2, prefix) {
