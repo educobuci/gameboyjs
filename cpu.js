@@ -7,20 +7,18 @@ export class Cpu {
     this.reg = {
       a:0, b:0, c:0, d:0, e:0, f: 0, h:0, l:0,   // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
-      t:0,		                                    // Clock for last instruction
-      pcs:0,																		    // PC size for last instruction
+      t:0,		                                   // Clock for last instruction
+      pcs:0,																		 // PC size for last instruction
     };
 		this.opCodes = {};
 		this._loadOpCodes();
 		this.prefixOpCodes = {};
     this._loadPrefixOpCodes();
-    console.log(this.prefixInstructions);
   }
   tick(codes = this.opCodes, instructions = this.instructions) {
     let code = this.mem.read8(this.reg.pc);
     if (code) {
       let instruction = codes[code]
-      console.log(codes, code);
       if (instruction) {
         this.reg.pc++;
         instruction();
