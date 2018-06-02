@@ -54,27 +54,44 @@ export class Cpu {
 	_mapInstructions(opCodes) {
     return opCodes.reduce((buffer, opCode) => {
       let instruction = {};
-      let f = this.ld_rr_d16.bind(this, 'sp');
+      let tokens = this._tokenize(opCode.label);
+      let f;
+      switch (tokens.name) {
+        case 'ld':
+          if(tokens.args[1] === 'nn') {
+            f = this['ld_rr_d16'].bind(this, tokens.args[0]);
+          }
+          break;
+      }
       instruction[opCode.opCode] = { ...opCode, func: f };
       return { ...buffer, ...instruction };
     }, {});
-		// let i = this._addInstruction.bind(this);
-		// let zf = (r) => {
-		// 	this.reg.f = r === 0 ? 0x80 : 0x00;
-		// };
-		// i(0x20, "jr nz, n",  () => { if ((this.reg.f & 0x80) === 0) this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF; }, 8, 1);
-		// i(0x21, "ld hl, nn", () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
-		// i(0x31, "ld sp, nn", () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
-		// i(0x32, "ld hl-, a", () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
-		// i(0xA8, "xor b",     () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
-		// i(0xAF, "xor a",     () => { this.reg.a=0; this.reg.f=0x80 }, 4);
-		// // CB prefixed
-    // i(0xCB, "prefix",    () => { this.tick(this.prefixInstructions) }, 4);
   }
 
   ld_rr_d16(register) {
-    this.reg[register] = this.mem.read16(this.reg.pc);
+	  if (register === 'sp') {
+      this.reg['sp'] = this.mem.read16(this.reg.pc);
+    }
+    else {
+      this.reg[register[1]] = this.mem.read8(this.reg.pc);
+      this.reg[register[0]] = this.mem.read8(this.reg.pc+1);
+    }
+
   }
+
+  // Legacy implementation
+  // let i = this._addInstruction.bind(this);
+  // let zf = (r) => {
+  // 	this.reg.f = r === 0 ? 0x80 : 0x00;
+  // };
+  // i(0x20, "jr nz, n",  () => { if ((this.reg.f & 0x80) === 0) this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF; }, 8, 1);
+  // i(0x21, "ld hl, nn", () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
+  // i(0x31, "ld sp, nn", () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
+  // i(0x32, "ld hl-, a", () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
+  // i(0xA8, "xor b",     () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
+  // i(0xAF, "xor a",     () => { this.reg.a=0; this.reg.f=0x80 }, 4);
+  // // CB prefixed
+  // i(0xCB, "prefix",    () => { this.tick(this.prefixInstructions) }, 4);
 
   disassembly() {
     let disassembledRom = {};
@@ -98,6 +115,12 @@ export class Cpu {
       pc += set[code].size + 1;
     }
     return disassembledRom;
+  }
+
+  _tokenize(label) {
+    const name = label.substr(0, label.indexOf(' '));
+    const args = label.substr(label.indexOf(' ')).split(',').map((t) => { return t.trim() });
+    return { name, args }
   }
 
   _parseLabel(instruction, pc) {
