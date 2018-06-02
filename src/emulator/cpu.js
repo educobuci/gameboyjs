@@ -1,5 +1,5 @@
-import {opCodes} from './opCodes';
-import {prefixOpCodes} from './opCodes';
+import { opCodes } from './opCodes.js';
+import { prefixOpCodes } from './opCodes.js';
 
 export class Cpu {
   constructor(memoryMap) {
