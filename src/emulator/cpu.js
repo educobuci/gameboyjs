@@ -1,14 +1,13 @@
-import {opCodes} from './op_codes';
-import {prefixOpCodes} from './op_codes';
+import {opCodes} from './opCodes';
+import {prefixOpCodes} from './opCodes';
 
 export class Cpu {
   constructor(memoryMap) {
     this.mem = memoryMap;
-    this.clock = 0;
+    this.cycles = 0;
     this.reg = {
       a:0, b:0, c:0, d:0, e:0, f: 0, h:0, l:0,   // 8-bit registers
       pc:0, sp:0,                                // 16-bit registers
-      t:0,		                                   // Clock for last instruction      
     };
     this.instructions = this._mapInstructions(opCodes);
     this.prefixInstructions = this._mapInstructions(prefixOpCodes);
@@ -20,7 +19,7 @@ export class Cpu {
       if (instruction) {
         this.reg.pc++;
         instruction.func();
-        this.clock += instruction.time;
+        this.cycles += instruction.cycles;
         this.reg.pc += instruction.size;
         // Clean up
         this.reg.t = 0;

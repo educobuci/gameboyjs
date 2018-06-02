@@ -1,6 +1,6 @@
-import {MemoryMap} from "./memoryMap";
-import {Cpu} from "./cpu";
-import {BIOS_ROM} from "./bios";
+import {MemoryMap} from "../emulator/memoryMap";
+import {Cpu} from "../emulator/cpu";
+import {BIOS_ROM} from "../emulator/bios";
 
 (function() {
   let $debugger = $("#debugger");

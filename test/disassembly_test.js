@@ -1,4 +1,4 @@
-import { GameBoy } from '../gameboy.js';
+import { GameBoy } from '../src/emulator/gameboy.js';
 import assert from 'assert';
 import { test } from "mocha";
 
@@ -9,14 +9,14 @@ beforeEach(() => {
   gameBoy = new GameBoy();
 });
 
-test('instruction disassembly', () => {
+test('Instruction Disassembly', () => {
   const rom = [0x31, 0xFE, 0xFF];
   gameBoy.loadRom(rom);
   const asm = gameBoy.cpu.disassembly();
   assert.equal(asm[0].opCode, 0x31);
 });
 
-test('ld rr d16', () => {
+test('LD RR D16', () => {
   const rom = [
     0x01, 0xFE, 0xFF, // BC
     0x11, 0xFE, 0xFF, // DE

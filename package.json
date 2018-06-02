@@ -2,7 +2,7 @@
   "name": "gameboyjs",
   "version": "1.0.0",
   "description": "GameBoy Emulator",
-  "main": "index.js",
+  "main": "src/web/index.js",
   "scripts": {
     "test": "mocha -u qunit --require babel-register"
   },

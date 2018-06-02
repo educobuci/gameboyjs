@@ -1,5 +1,5 @@
-const i = (opCode, label, time, size = 0) => {
-  return { opCode, label, time, size };
+const i = (opCode, label, cycles, size = 0) => {
+  return { opCode, label, cycles, size };
 };
 
 export const opCodes = [
