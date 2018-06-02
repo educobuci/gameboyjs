@@ -11,7 +11,7 @@ export class Cpu {
       t:0,		                                   // Clock for last instruction      
     };
     this.instructions = this._mapInstructions(opCodes);
-    this.duds = opCodes;
+    this.prefixInstructions = this._mapInstructions(prefixOpCodes);
   }
   tick(instructions = this.instructions) {
     const opCode = this.mem.read8(this.reg.pc);
@@ -54,9 +54,9 @@ export class Cpu {
 	_mapInstructions(opCodes) {
     return opCodes.reduce((buffer, opCode) => {
       let instruction = {};
-      let f = this.ld_rr_d16.bind(this, [this.reg['sp']]);
-      instruction[opCode.opCode] = {...opCode, func: f };
-      return {...buffer, ...instruction};
+      let f = this.ld_rr_d16.bind(this, 'sp');
+      instruction[opCode.opCode] = { ...opCode, func: f };
+      return { ...buffer, ...instruction };
     }, {});
 		// let i = this._addInstruction.bind(this);
 		// let zf = (r) => {
@@ -73,34 +73,31 @@ export class Cpu {
   }
 
   ld_rr_d16(register) {
-    register = this.mem.read16(this.reg.pc);
+    this.reg[register] = this.mem.read16(this.reg.pc);
   }
 
-  decompile() {
-    let decompiledRom = {};
-    // let code, instruction;
-    // let pc = 0;
-    // while(true) {
-    //   let i;
-    //   let set;
-    //   code = this.mem.read8(pc);
-    //   // Prefixed instructions
-    //   if (pc > 0 && this.mem.read8(pc-1) === 0xCB) {
-    //     set = this.prefixInstructions;
-    //   } else {
-    //     set = this.instructions;
-    //   }
-    //   i = set[code];
-    //   if (!code || !i) break;
-    //   instruction = {
-    //     opCode: i.opCode,
-    //     s: i.s,
-    //     label: this._parseLabel(i, pc)
-    //   };
-    //   decompiledRom[pc.toString(10)] = instruction;
-    //   pc += instruction.s + 1;
-    // }
-    return decompiledRom;
+  disassembly() {
+    let disassembledRom = {};
+    let pc = 0;
+    while(true) {
+      let set;
+      const code = this.mem.read8(pc);
+      // Prefixed instructions
+      if (code === 0xCB) {
+        set = this.prefixInstructions;
+        pc++;
+      } else {
+        set = this.instructions;
+      }
+      const instruction = set[code];
+      if (!code || !instruction) break;
+      disassembledRom[pc.toString(10)] = {
+        ...instruction,
+        text: this._parseLabel(instruction, pc)
+      };
+      pc += set[code].size + 1;
+    }
+    return disassembledRom;
   }
 
   _parseLabel(instruction, pc) {

@@ -1,7 +1,10 @@
 const i = (opCode, label, time, size = 0) => {
-  return {opCode, label, time, size};
-}
+  return { opCode, label, time, size };
+};
+
 export const opCodes = [
+  i(0x01, 'ld bc, nn', 12, 2),
+  i(0x11, 'ld de, nn', 12, 2),
   i(0x20, 'jr nz, n', 8, 1),
 	i(0x21, 'ld hl, nn', 12, 2),
 	i(0x31, 'ld sp, nn', 12, 2),

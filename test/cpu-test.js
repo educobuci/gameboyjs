@@ -1,6 +1,6 @@
-import {GameBoy} from '../gameboy.js';
+import { GameBoy } from '../gameboy.js';
 import assert from "assert";
-import {test} from "mocha";
+import { test } from "mocha";
 
 let gameBoy = new GameBoy();
 
