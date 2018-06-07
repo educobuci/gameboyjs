@@ -74,7 +74,6 @@ export class Cpu {
    * Put value d16 into rr.
    *
    * Use with:
-   *
    * rr = bc,de,hl,sp
    * nn = 16 bit immediate value
    *
@@ -90,6 +89,21 @@ export class Cpu {
     }
   }
 
+  /**
+   * xor_r
+   *
+   * Logical exclusive OR n with register A, result in A.
+   *
+   * Use with:
+   * r = a,b,c,d,e,h,l,(hl),#
+   *
+   * Flags affected:
+   * Z - Set if result is zero. N - Reset.
+   * H - Reset.
+   * C - Reset.
+   *
+   * @param {string} register      Registry name (a,b,c,d,e,h,l,(hl),#).
+   */
   xor_r(register){
     this.reg.a ^= this.reg[register]; this.zeroFlag(this.reg.a);
   }
