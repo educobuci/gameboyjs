@@ -18,11 +18,9 @@ export class Cpu {
       const instruction = instructions[opCode];
       if (instruction) {
         this.reg.pc++;
-        instruction.func();
+        instruction.execute();
         this.cycles += instruction.cycles;
         this.reg.pc += instruction.size;
-        // Clean up
-        this.reg.t = 0;
         return true;
       } else {
         console.log("NOT FOUND");
@@ -53,20 +51,35 @@ export class Cpu {
 	_mapInstructions(opCodes) {
     return opCodes.reduce((buffer, opCode) => {
       let instruction = {};
-      let tokens = this._tokenize(opCode.label);
-      let f;
+      let tokens = Cpu.tokenize(opCode.label);
+      let execute;
       switch (tokens.name) {
         case 'ld':
           if(tokens.args[1] === 'nn') {
-            f = this['ld_rr_d16'].bind(this, tokens.args[0]);
+            execute = this['ld_rr_d16'].bind(this, tokens.args[0]);
           }
           break;
+        case 'xor':
+          execute = this['xor_r'].bind(this, tokens.args[0]);
+          break;
       }
-      instruction[opCode.opCode] = { ...opCode, func: f };
+      instruction[opCode.opCode] = { ...opCode, execute };
       return { ...buffer, ...instruction };
     }, {});
   }
 
+  /**
+   * ld_rr_d16
+   *
+   * Put value d16 into rr.
+   *
+   * Use with:
+   *
+   * rr = bc,de,hl,sp
+   * nn = 16 bit immediate value
+   *
+   * @param {string} register      Registry name (bc,de,hl,sp).
+   */
   ld_rr_d16(register) {
 	  if (register === 'sp') {
       this.reg['sp'] = this.mem.read16(this.reg.pc);
@@ -75,62 +88,37 @@ export class Cpu {
       this.reg[register[1]] = this.mem.read8(this.reg.pc);
       this.reg[register[0]] = this.mem.read8(this.reg.pc+1);
     }
-
   }
 
-  // Legacy implementation
-  // let i = this._addInstruction.bind(this);
-  // let zf = (r) => {
-  // 	this.reg.f = r === 0 ? 0x80 : 0x00;
-  // };
-  // i(0x20, "jr nz, n",  () => { if ((this.reg.f & 0x80) === 0) this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF; }, 8, 1);
-  // i(0x21, "ld hl, nn", () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
-  // i(0x31, "ld sp, nn", () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
-  // i(0x32, "ld hl-, a", () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
-  // i(0xA8, "xor b",     () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
-  // i(0xAF, "xor a",     () => { this.reg.a=0; this.reg.f=0x80 }, 4);
-  // // CB prefixed
-  // i(0xCB, "prefix",    () => { this.tick(this.prefixInstructions) }, 4);
-
-  disassembly() {
-    let disassembledRom = {};
-    let pc = 0;
-    while(true) {
-      let set;
-      const code = this.mem.read8(pc);
-      // Prefixed instructions
-      if (code === 0xCB) {
-        set = this.prefixInstructions;
-        pc++;
-      } else {
-        set = this.instructions;
-      }
-      const instruction = set[code];
-      if (!code || !instruction) break;
-      disassembledRom[pc.toString(10)] = {
-        ...instruction,
-        text: this._parseLabel(instruction, pc)
-      };
-      pc += set[code].size + 1;
-    }
-    return disassembledRom;
+  xor_r(register){
+    this.reg.a ^= this.reg[register]; this.zeroFlag(this.reg.a);
   }
 
-  _tokenize(label) {
+  zeroFlag(register){
+    this.reg.f = register === 0 ? 0x80 : 0x00;
+  }
+
+  static tokenize(label) {
     const name = label.substr(0, label.indexOf(' '));
     const args = label.substr(label.indexOf(' ')).split(',').map((t) => { return t.trim() });
     return { name, args }
   }
 
-  _parseLabel(instruction, pc) {
-    let tokens = instruction.label.split(",").map((t) => { return t.trim() });
-    let wordIndex = tokens.indexOf("nn");
-    if (wordIndex > 0) {
-      tokens[wordIndex] = "$" + this.mem.read16(pc + 1).toString(16).toUpperCase()
-    }
-    return tokens.join(", ");
-  }
 }
+
+// Legacy implementation
+// let i = this._addInstruction.bind(this);
+// let zf = (r) => {
+// 	this.reg.f = r === 0 ? 0x80 : 0x00;
+// };
+// i(0x20, "jr nz, n",  () => { if ((this.reg.f & 0x80) === 0) this.reg.pc = (this.reg.pc + this.mem.read8(this.reg.pc)) & 0xFF; }, 8, 1);
+// i(0x21, "ld hl, nn", () => { this.reg.l = this.mem.read8(this.reg.pc); this.reg.h = this.mem.read8(this.reg.pc+1) }, 12, 2);
+// i(0x31, "ld sp, nn", () => { this.reg.sp=this.mem.read16(this.reg.pc) }, 12, 2);
+// i(0x32, "ld hl-, a", () => { let hl = this._loadWord("hl"); this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1); }, 8);
+// i(0xA8, "xor b",     () => { this.reg.a^=this.reg.b; zf(this.reg.a) }, 4);
+// i(0xAF, "xor a",     () => { this.reg.a=0; this.reg.f=0x80 }, 4);
+// // CB prefixed
+// i(0xCB, "prefix",    () => { this.tick(this.prefixInstructions) }, 4);
 
 // this.opCodes = {
 //   // DEC B

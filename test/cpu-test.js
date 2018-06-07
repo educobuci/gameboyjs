@@ -12,7 +12,7 @@ beforeEach(() => {
 test('Load rom', () => {
   let rom = [];
   run(rom);
-  cpu({sp: 0, a: 0, b: 0, pc: 0 });
+  cpu({ sp: 0, a: 0, b: 0, pc: 0 });
 });
 
 // Instructions test
