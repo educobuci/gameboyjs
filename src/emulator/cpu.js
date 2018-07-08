@@ -92,7 +92,7 @@ export class Cpu {
   /**
    * xor_r
    *
-   * Logical exclusive OR n with register A, result in A.
+   * Logical exclusive OR r with register A, result in A.
    *
    * Use with:
    * r = a,b,c,d,e,h,l,(hl),#
