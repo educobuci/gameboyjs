@@ -57,6 +57,8 @@ export class Cpu {
         case 'ld':
           if(tokens.args[1] === 'nn') {
             execute = this['ld_rr_d16'].bind(this, tokens.args[0]);
+          } else if(tokens.args[0] === 'hld') {
+            execute = this['ld_hld_a'].bind(this);
           }
           break;
         case 'xor':
@@ -104,8 +106,17 @@ export class Cpu {
    *
    * @param {string} register      Registry name (a,b,c,d,e,h,l,(hl),#).
    */
-  xor_r(register){
+  xor_r(register) {
     this.reg.a ^= this.reg[register]; this.zeroFlag(this.reg.a);
+  }
+
+  /**
+   * ld_hld_a
+   * Put A into memory address HL. Decrement H.
+   */
+  ld_hld_a() {
+    let hl = this._loadWord("hl");
+    this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1);
   }
 
   zeroFlag(register){

@@ -4,7 +4,8 @@
   "description": "GameBoy Emulator",
   "main": "src/web/index.js",
   "scripts": {
-    "test": "mocha -u qunit --require babel-register"
+    "test": "mocha -u qunit --require babel-register",
+    "autotest": "nodemon --exec \"npm test\""
   },
   "repository": {
     "type": "git",
@@ -26,6 +27,7 @@
     "babel-plugin-transform-class-properties": "^6.24.1",
     "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-preset-env": "^1.6.1",
-    "babel-register": "^6.26.0"
+    "babel-register": "^6.26.0",
+    "nodemon": "^1.17.4"
   }
 }
