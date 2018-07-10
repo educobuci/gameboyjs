@@ -168,7 +168,7 @@ export class Cpu {
    * 
    * Set bit b in register r
    * 
-   * @param {number} bit 
+   * @param {number} bit            Bit 0 - 7
    * @param {string} register       Register name (a,b,c,d,e,h,l,(hl)).
    */
   bit_b_r(bit, register) {
@@ -194,7 +194,6 @@ export class Cpu {
     switch(condition) {
       case 'nz':
         this.reg.pc = this.reg.f & 0x80 ? this.reg.pc : (this.reg.pc - 1 + value) % 0xFF;
-        console.log('jr - pc', this.reg.pc, value);
         break;
     }
   }
