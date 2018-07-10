@@ -24,17 +24,17 @@ const disassembly = (mem) => {
     }
     instruction = set[code];
     if (!code || !instruction) break;
-    disassembledRom[addr.toString(10)] = instruction;
+    disassembledRom[addr.toString(10)] = { ...instruction, label: parseLabel(instruction, pc, mem) };
     pc += set[code].size + 1;
   }
   return disassembledRom;
 };
 
-const parseLabel = (instruction, pc) => {
+const parseLabel = (instruction, pc, mem) => {
   let tokens = instruction.label.split(",").map((t) => { return t.trim() });
   let wordIndex = tokens.indexOf("nn");
   if (wordIndex > 0) {
-    tokens[wordIndex] = "$" + this.mem.read16(pc + 1).toString(16).toUpperCase()
+    tokens[wordIndex] = "$" + mem.read16(pc + 1).toString(16).toUpperCase()
   }
   return tokens.join(", ");
 };

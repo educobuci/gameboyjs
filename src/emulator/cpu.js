@@ -72,6 +72,9 @@ export class Cpu {
         case 'bit':
           execute = this['bit_b_r'].bind(this, tokens.args[0], tokens.args[1]);
           break;
+        case 'jr':
+          execute = this['jr_cc_n'].bind(this, tokens.args[0], tokens.args[1]);
+          break;
         default:
           if(opCode.label === 'prefix') {
             execute = () => { this.tick(this.prefixInstructions) };
@@ -170,5 +173,29 @@ export class Cpu {
    */
   bit_b_r(bit, register) {
     this.reg.f = ((this.reg[register] & (2**bit)) ? 0x00 : 0x80) + 0x20;
+  }
+
+  /**
+   * jr_cc_n
+   * 
+   * If following condition is true then add n to current address and jump to it.
+   * 
+   * Use with:
+   * n = one byte signed immediate value
+   * cc = nz, Jump if Z flag is reset.
+   * cc = z,  Jump if Z flag is set.
+   * cc = nc, Jump if C flag is reset.
+   * cc = c, Jump if C flag is set.
+   * 
+   * @param {string} condition      Condition (nz, z, nc, c)
+   */
+  jr_cc_n(condition) {
+    const value = this.mem.read8(this.reg.pc);
+    switch(condition) {
+      case 'nz':
+        this.reg.pc = this.reg.f & 0x80 ? this.reg.pc : (this.reg.pc - 1 + value) % 0xFF;
+        console.log('jr - pc', this.reg.pc, value);
+        break;
+    }
   }
 }

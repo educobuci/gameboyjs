@@ -74,14 +74,14 @@ test('JR NZ, N', () => {
   let rom = [0x20, 0x03];
   gameBoy.cpu.reg.f = 0x00;
   run(rom);
-  cpu({cycles: 8, pc: 5});
+  cpu({ cycles: 8, pc: 4 });
 });
 
 test('JR NZ, N - Zero', () => {
   let rom = [0x20, 0x03];
   gameBoy.cpu.reg.f = 0x80;
   run(rom);
-  cpu({cycles: 8, pc: 2});
+  cpu({ cycles: 8, pc: 2 });
 });
 
 // Helpers
