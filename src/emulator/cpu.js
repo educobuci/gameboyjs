@@ -169,6 +169,6 @@ export class Cpu {
    * @param {string} register       Register name (a,b,c,d,e,h,l,(hl)).
    */
   bit_b_r(bit, register) {
-    this.reg.f = ((this.reg[register] & 0x80) ? 0x00 : 0x80) + 0x20;
+    this.reg.f = ((this.reg[register] & (2**bit)) ? 0x00 : 0x80) + 0x20;
   }
 }
