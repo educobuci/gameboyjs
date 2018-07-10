@@ -16,7 +16,7 @@ test('Load rom', () => {
 });
 
 // Instructions test
-test('LD SP,NN (0x31)', () => {
+test('LD SP, NN (0x31)', () => {
   let rom = [0x31, 0xFE, 0xFF];
   run(rom);
 	cpu({ sp: 0xFFFE, cycles: 12, pc: 3 });
@@ -39,7 +39,7 @@ test('XOR B (0xA8)', () => {
 	cpu({ a: 0x0F, f: 0x00, cycles: 4, pc: 1 });
 });
 
-test('LD HL,NN (0x21)', () => {
+test('LD HL, NN (0x21)', () => {
   let rom = [0x21, 0xFE, 0xFF];
   run(rom);
   cpu({ h: 0xFF, l: 0xFE, cycles: 12, pc: 3 });
@@ -63,21 +63,21 @@ test('BIT 7,H (0xCB 0x7C)', () => {
   cpu({ f: 0x20, cycles:12, pc: 2 });
 });
 
-test('BIT 7,H (0xCB 0x7C) - Zero', () => {
+test('BIT 7, H (0xCB 0x7C) - Zero', () => {
   let rom = [0xCB, 0x7C];
-  gameBoy.cpu.reg.h = 0x7F;
+  gameBoy.cpu.reg.h = 0x00;
   run(rom);
   cpu({ f: 0xA0, cycles:12, pc: 2 });
 });
 
-test('JR NZ,N', () => {
+test('JR NZ, N', () => {
   let rom = [0x20, 0x03];
   gameBoy.cpu.reg.f = 0x00;
   run(rom);
   cpu({cycles: 8, pc: 5});
 });
 
-test('JR NZ,N - Zero', () => {
+test('JR NZ, N - Zero', () => {
   let rom = [0x20, 0x03];
   gameBoy.cpu.reg.f = 0x80;
   run(rom);

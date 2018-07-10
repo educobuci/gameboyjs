@@ -1,13 +1,14 @@
 import { MemoryMap } from "../emulator/memoryMap.js";
 import { Cpu } from "../emulator/cpu.js";
 import { BIOS_ROM } from "../emulator/bios.js";
+import disassembly from '../emulator/disassembler.js';
 
 (function() {
   let $debugger = $("#debugger");
   let decompiledRom = null;
   let getDecompiledRom = () => {
     if (decompiledRom === null) {
-      decompiledRom = window.cpu.disassembly();
+      decompiledRom = disassembly(window.memoryMap);
     }
     return decompiledRom;
   };
