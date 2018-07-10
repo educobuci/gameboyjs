@@ -15,5 +15,5 @@ export const opCodes = [
 ];
 
 export const prefixOpCodes = [
-  i(0x70, 'bit 7, h', 8)
+  i(0x7C, 'bit 7, h', 8)
 ];

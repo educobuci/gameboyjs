@@ -13,7 +13,7 @@ export class Cpu {
     this.prefixInstructions = this._mapInstructions(prefixOpCodes);
   }
   tick(instructions = this.instructions) {
-    const opCode = this.mem.read8(this.reg.pc);
+    var opCode = this.mem.read8(this.reg.pc);
     if (opCode) {
       const instruction = instructions[opCode];
       if (instruction) {
@@ -64,6 +64,15 @@ export class Cpu {
         case 'xor':
           execute = this['xor_r'].bind(this, tokens.args[0]);
           break;
+        case 'bit':
+          execute = this['bit_b_r'].bind(this, tokens.args[0], tokens.args[1]);
+          break;
+        default:
+          if(opCode.label === 'prefix') {
+            execute = () => { this.tick(this.prefixInstructions) };
+          } else {
+            // console.log('uk', opCode);
+          }
       }
       instruction[opCode.opCode] = { ...opCode, execute };
       return { ...buffer, ...instruction };
@@ -104,7 +113,7 @@ export class Cpu {
    * H - Reset.
    * C - Reset.
    *
-   * @param {string} register      Registry name (a,b,c,d,e,h,l,(hl),#).
+   * @param {string} register      Register name (a,b,c,d,e,h,l,(hl),#).
    */
   xor_r(register) {
     this.reg.a ^= this.reg[register]; this.zeroFlag(this.reg.a);
@@ -118,6 +127,31 @@ export class Cpu {
     let hl = this._loadWord("hl");
     this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1);
   }
+
+  /**
+   * bit_b_r
+   * 
+   * Test bit b in register r.
+   * 
+   * Use with:
+   * b = 0 - 7,
+   * r = a,b,c,d,e,h,l,(hl)
+   * 
+   * Flags affected:
+   * Z - Set if bit b of register r is 0. N - Reset.
+   * H - Set.
+   * C - Not affected.
+   * 
+   * Set bit b in register r
+   * 
+   * @param {number} bit 
+   * @param {string} register       Register name (a,b,c,d,e,h,l,(hl)).
+   */
+  bit_b_r(bit, register) {
+    this.reg.f = ((this.reg[register] & 0x80) ? 0x00 : 0x80) + 0x20;
+  }
+
+  // fz: function(i,as) { Z80._r.f=0; if(!(i&255)) Z80._r.f|=128; Z80._r.f|=as?0x40:0; },
 
   zeroFlag(register){
     this.reg.f = register === 0 ? 0x80 : 0x00;
