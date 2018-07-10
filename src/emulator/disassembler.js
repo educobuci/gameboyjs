@@ -11,17 +11,20 @@ const disassembly = (mem) => {
   let disassembledRom = {};
   let pc = 0;
   while(true) {
-    let set;
-    const code = mem.read8(pc);
+    let set, instruction, addr;
+    let code = mem.read8(pc);
     if (code === 0xCB) {
       set = prefixInstructions;
       pc++;
+      code = mem.read8(pc);
+      addr = pc - 1;
     } else {
       set = instructions;
+      addr = pc;
     }
-    const instruction = set[code];
+    instruction = set[code];
     if (!code || !instruction) break;
-    disassembledRom[pc.toString(10)] = instruction;
+    disassembledRom[addr.toString(10)] = instruction;
     pc += set[code].size + 1;
   }
   return disassembledRom;
