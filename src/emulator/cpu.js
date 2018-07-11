@@ -62,6 +62,8 @@ export class Cpu {
         case 'ld':
           if(tokens.args[1] === 'nn') {
             execute = this['ld_rr_d16'].bind(this, tokens.args[0]);
+          } else if (tokens.args[1] === 'n') {
+            execute = this['ld_r_d8'].bind(this, tokens.args[0]);
           } else if(tokens.args[0] === 'hld') {
             execute = this['ld_hld_a'].bind(this);
           }
@@ -73,7 +75,7 @@ export class Cpu {
           execute = this['bit_b_r'].bind(this, tokens.args[0], tokens.args[1]);
           break;
         case 'jr':
-          execute = this['jr_cc_n'].bind(this, tokens.args[0], tokens.args[1]);
+          execute = this['jr_cc_d8'].bind(this, tokens.args[0], tokens.args[1]);
           break;
         default:
           if(opCode.label === 'prefix') {
@@ -108,7 +110,7 @@ export class Cpu {
    *
    * Use with:
    * rr = bc,de,hl,sp
-   * nn = 16 bit immediate value
+   * d16 = 16 bit immediate value
    *
    * @param {string} register      Registry name (bc,de,hl,sp).
    */
@@ -120,6 +122,21 @@ export class Cpu {
       this.reg[register[1]] = this.mem.read8(this.reg.pc);
       this.reg[register[0]] = this.mem.read8(this.reg.pc+1);
     }
+  }
+
+  /**
+   * ld_r_d8
+   *
+   * Put value d8 into r.
+   *
+   * Use with:
+   * r = b,c,d,e,h,l
+   * d8 = 8 bit immediate value
+   *
+   * @param {string} register      Registry name (b,c,d,e,h,l).
+   */
+  ld_r_d8(register) {
+	  this.reg[register] = this.mem.read8(this.reg.pc);
   }
 
   /**
@@ -176,7 +193,7 @@ export class Cpu {
   }
 
   /**
-   * jr_cc_n
+   * jr_cc_d8
    * 
    * If following condition is true then add n to current address and jump to it.
    * 
@@ -189,7 +206,7 @@ export class Cpu {
    * 
    * @param {string} condition      Condition (nz, z, nc, c)
    */
-  jr_cc_n(condition) {
+  jr_cc_d8(condition) {
     const value = this.mem.read8(this.reg.pc);
     switch(condition) {
       case 'nz':
