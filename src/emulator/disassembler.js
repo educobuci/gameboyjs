@@ -35,7 +35,12 @@ const parseLabel = (instruction, pc, mem) => {
   let wordIndex = tokens.indexOf("nn");
   if (wordIndex > 0) {
     tokens[wordIndex] = "$" + mem.read16(pc + 1).toString(16).toUpperCase()
-  }
+  } else {
+    wordIndex = tokens.indexOf("n");
+    if (wordIndex > 0) {
+      tokens[wordIndex] = "$" + mem.read8(pc + 1).toString(16).toUpperCase()
+    }
+  }  
   return tokens.join(", ");
 };
 
