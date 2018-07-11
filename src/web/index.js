@@ -21,12 +21,7 @@ import disassembly from '../emulator/disassembler.js';
           instructions: getDecompiledRom()
         },
         methods: {
-          d8: (n) => {
-            // return parseInt(n).toLocaleString( undefined,
-            //   { minimumIntegerDigits: 4, useGrouping:false }
-            // );
-            return ("0000" + parseInt(n,10).toString(16).toUpperCase()).slice(-4);
-          }
+          d8: (n) => ("0000" + parseInt(n,10).toString(16).toUpperCase()).slice(-4)
         }
       });
     }
