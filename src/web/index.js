@@ -45,10 +45,15 @@ import disassembly from '../emulator/disassembler.js';
   }
 
   function run() {
-    while (window.cpu.reg.pc <= 0xFFFF) {
+    do  {
       step();
-    }
+    } while (window.cpu.reg.pc <= 0xFFFF && !onBreakPoint(window.cpu.reg.pc))
     printRegs();
+  }
+
+  function onBreakPoint(pc) {
+    let breakPoint = document.querySelector("[data-breakpoint='" + pc + "']");
+    return breakPoint && breakPoint.checked;
   }
 
   function step() {

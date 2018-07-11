@@ -24,7 +24,7 @@
         <h4>Debugger</h4>
         <ul id="debugger">
           <li v-for="(item, index) in instructions">
-            {{ d8(index) }} {{ item.label }}
+            <input type="checkbox" :data-breakpoint="index"> {{ d8(index) }} {{ item.label }}
           </li>
         </ul>
       </div>

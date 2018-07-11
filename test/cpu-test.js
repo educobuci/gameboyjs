@@ -36,6 +36,15 @@ function cpu (values) {
 
 // Instructions test
 
+test('INC C (0x0C)', () => {
+  let rom = [0x0C];
+  gameBoy.cpu.reg.c = 0x11;
+  run(rom);
+  cpu({ c: 0x12, cycles: 4, pc: 1 });
+  let flag = gameBoy.cpu.reg.f;
+  assert(!(flag & 0x80));
+});
+
 test('LD C, N (0x0E)', () => {
   let rom = [0x0E, 0x11];
   run(rom);
@@ -108,4 +117,13 @@ test('BIT 7, H (0xCB 0x7C) - Zero', () => {
   gameBoy.cpu.reg.h = 0x00;
   run(rom);
   cpu({ f: 0xA0, cycles:12, pc: 2 });
+});
+
+test('LD (C), A (0xE2)', () => {
+  let rom = [0xE2];
+  gameBoy.cpu.reg.a = 0x80;
+  gameBoy.cpu.reg.c = 0x11;
+  run(rom);
+  cpu({ cycles: 8, pc: 1 });
+  assert.equal(gameBoy.memoryMap.read8(0xFF11), 0x80);
 });

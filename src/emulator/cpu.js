@@ -1,7 +1,13 @@
 import { opCodes } from './opCodes.js';
 import { prefixOpCodes } from './opCodes.js';
+import { MemoryMap } from './memoryMap.js';
 
 export class Cpu {
+
+  /**
+   * 
+   * @param {MemoryMap} memoryMap 
+   */
   constructor(memoryMap) {
     this.mem = memoryMap;
     this.cycles = 0;
@@ -66,6 +72,8 @@ export class Cpu {
             execute = this['ld_r_d8'].bind(this, tokens.args[0]);
           } else if(tokens.args[0] === 'hld') {
             execute = this['ld_hld_a'].bind(this);
+          } else if(tokens.args[0] == '(c)') {
+            execute = this['ld_0xFF00_c_a'].bind(this);
           }
           break;
         case 'xor':
@@ -76,6 +84,9 @@ export class Cpu {
           break;
         case 'jr':
           execute = this['jr_cc_d8'].bind(this, tokens.args[0], tokens.args[1]);
+          break;
+        case 'inc':
+          execute = this['inc_r'].bind(this, tokens.args[0]);
           break;
         default:
           if(opCode.label === 'prefix') {
@@ -195,10 +206,10 @@ export class Cpu {
   /**
    * jr_cc_d8
    * 
-   * If following condition is true then add n to current address and jump to it.
+   * If following condition is true then add d8 to current address and jump to it.
    * 
    * Use with:
-   * n = one byte signed immediate value
+   * d8 = one byte signed immediate value
    * cc = nz, Jump if Z flag is reset.
    * cc = z,  Jump if Z flag is set.
    * cc = nc, Jump if C flag is reset.
@@ -207,11 +218,38 @@ export class Cpu {
    * @param {string} condition      Condition (nz, z, nc, c)
    */
   jr_cc_d8(condition) {
-    const value = this.mem.read8(this.reg.pc);
+    const d8 = this.mem.read8(this.reg.pc);
     switch(condition) {
       case 'nz':
-        this.reg.pc = this.reg.f & 0x80 ? this.reg.pc : (this.reg.pc - 1 + value) % 0xFF;
+        this.reg.pc = this.reg.f & 0x80 ? this.reg.pc : (this.reg.pc - 1 + d8) % 0xFF;
         break;
     }
+  }
+
+  /**
+   * ld_0xFF00_c_a
+   * 
+   * Put A into address $FF00 + register C.
+   */
+  ld_0xFF00_c_a() {
+    this.mem.write(0xFF00 + this.reg.c, this.reg.a);
+  }
+
+  /**
+   * inc_r
+   * 
+   * Increment register r.
+   * 
+   * Use with:
+   * r = a,b,c,d,e,h,l,(hl)
+   * 
+   * Flags affected:
+   * Z - Set if result is zero.
+   * N - Reset.
+   * H - Set if carry from bit 3.
+   * C - Not affected.
+   */
+  inc_r(register) {
+    this.reg[register]++;
   }
 }
