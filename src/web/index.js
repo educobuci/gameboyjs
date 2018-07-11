@@ -19,6 +19,14 @@ import disassembly from '../emulator/disassembler.js';
         el: "#debugger",
         data: {
           instructions: getDecompiledRom()
+        },
+        methods: {
+          d8: (n) => {
+            // return parseInt(n).toLocaleString( undefined,
+            //   { minimumIntegerDigits: 4, useGrouping:false }
+            // );
+            return ("0000" + parseInt(n,10).toString(16).toUpperCase()).slice(-4);
+          }
         }
       });
     }

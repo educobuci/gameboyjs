@@ -23,8 +23,8 @@
       <div class="col-md-4">
         <h4>Debugger</h4>
         <ul id="debugger">
-          <li v-for="i in instructions">
-            {{ i.label }}
+          <li v-for="(item, index) in instructions">
+            {{ d8(index) }} {{ item.label }}
           </li>
         </ul>
       </div>
