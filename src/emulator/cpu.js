@@ -25,10 +25,17 @@ export class Cpu {
       const instruction = instructions[opCode];
       if (instruction) {
         this.reg.pc++;
-        instruction.execute();
-        this.cycles += instruction.cycles;
-        this.reg.pc += instruction.size;
-        return true;
+        if(instruction.execute) {
+          instruction.execute();
+          this.cycles += instruction.cycles;
+          this.reg.pc += instruction.size;
+          //console.log(instruction)
+          return true;
+        } else {
+          let message = "Instruction not found: 0x" + ("0" + opCode.toString(16).toUpperCase()).substr(-2);
+          message += " - [" + instruction.label + "]";
+          throw(message);
+        }
       } else {
         console.log("NOT FOUND");
         throw("Instruction not found: 0x" + ("0" + opCode.toString(16).toUpperCase()).substr(-2));
@@ -70,8 +77,10 @@ export class Cpu {
             execute = this['ld_rr_d16'].bind(this, tokens.args[0]);
           } else if (tokens.args[1] === 'n') {
             execute = this['ld_r_d8'].bind(this, tokens.args[0]);
-          } else if(tokens.args[0] === 'hld') {
+          } else if(tokens.args[0] === '(hld)') {
             execute = this['ld_hld_a'].bind(this);
+          } else if(tokens.args[0] === '(hl)') {
+            execute = this['ld_hl_a'].bind(this);
           } else if(tokens.args[0] == '(c)') {
             execute = this['ld_0xFF00_c_a'].bind(this);
           }
@@ -92,7 +101,7 @@ export class Cpu {
           if(opCode.label === 'prefix') {
             execute = () => { this.tick(this.prefixInstructions) };
           } else {
-            // console.log('uk', opCode);
+            //console.log('uk', opCode);
           }
       }
       instruction[opCode.opCode] = { ...opCode, execute };
@@ -177,6 +186,15 @@ export class Cpu {
   ld_hld_a() {
     let hl = this._loadWord("hl");
     this.mem.write(hl, this.reg.a); this._writeWord("hl", hl - 1);
+  }
+
+    /**
+   * ld_hl_a
+   * Put A into memory address HL.
+   */
+  ld_hl_a() {
+    let hl = this._loadWord("hl");
+    this.mem.write(hl, this.reg.a);
   }
 
   /**

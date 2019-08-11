@@ -87,6 +87,16 @@ test('LD (HL-),A (0x32)', () => {
   assert.equal(gameBoy.memoryMap.read8(0x9FFF), 0xAA);
 });
 
+
+test('LD (HL), A', () => {
+  let rom = [0x77];
+  gameBoy.cpu.reg.a = 0xBB;
+  gameBoy.cpu.reg.h = 0xFF;
+  gameBoy.cpu.reg.l = 0xFF;
+  run(rom);
+  assert.equal(gameBoy.memoryMap.read8(0xFFFF), 0xBB);
+});
+
 test('XOR B (0xA8)', () => {
 	let rom = [0xA8];
 	gameBoy.cpu.reg.a = 0x03;
