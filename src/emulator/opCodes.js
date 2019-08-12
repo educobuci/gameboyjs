@@ -9,6 +9,7 @@ export const opCodes = [
   i(0x0E, 'ld c, n',    8, 1),
   i(0x11, 'ld de, nn',  12, 2),
   i(0x16, 'ld d, n',    8, 1),
+  i(0x1A, 'ld a, (de)', 8, 1),
   i(0x1E, 'ld e, n',    8, 1),
   i(0x20, 'jr nz, n',   8, 1),
   i(0x21, 'ld hl, nn',  12, 2),

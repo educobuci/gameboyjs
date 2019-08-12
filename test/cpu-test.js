@@ -94,6 +94,7 @@ test('LD (HL), A', () => {
   gameBoy.cpu.reg.h = 0xFF;
   gameBoy.cpu.reg.l = 0xFF;
   run(rom);
+  cpu({ cycles: 8, pc: 5 });
   assert.equal(gameBoy.memoryMap.read8(0xFFFF), 0xBB);
 });
 
@@ -136,4 +137,12 @@ test('LD (C), A (0xE2)', () => {
   run(rom);
   cpu({ cycles: 8, pc: 1 });
   assert.equal(gameBoy.memoryMap.read8(0xFF11), 0x80);
+});
+
+test("LD A, (DE) (0x1A)", () =>  {
+  let rom = [0x1A, 0xDE];
+  gameBoy.cpu.reg.d = 0x00;
+  gameBoy.cpu.reg.e = 0x01;
+  run(rom);
+  cpu({ cycles: 8, pc: 2, a: 0x0001 });
 });

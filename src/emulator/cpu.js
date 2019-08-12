@@ -34,6 +34,7 @@ export class Cpu {
         } else {
           let message = "Instruction not found: 0x" + ("0" + opCode.toString(16).toUpperCase()).substr(-2);
           message += " - [" + instruction.label + "]";
+          console.warn(this.reg);
           throw(message);
         }
       } else {
@@ -83,6 +84,9 @@ export class Cpu {
             execute = this['ld_hl_a'].bind(this);
           } else if(tokens.args[0] == '(c)') {
             execute = this['ld_0xFF00_c_a'].bind(this);
+          } else if(tokens.args[1].match(/\(\w+\)/)) {
+            const regs = tokens.args[1].substring(1,3)
+            execute = this['ld_r___rr__'].bind(this, tokens.args[0], regs);
           }
           break;
         case 'xor':
@@ -269,5 +273,9 @@ export class Cpu {
    */
   inc_r(register) {
     this.reg[register]++;
+  }
+
+  ld_r___rr__(register, reg_location) {
+    this.reg[register] = this._loadWord(reg_location);
   }
 }

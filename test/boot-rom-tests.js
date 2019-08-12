@@ -10,7 +10,7 @@ beforeEach(() => {
   gameBoy = new GameBoy();
 });
 
-test('The truth', () => {
+test('boot rom', () => {
   gameBoy.loadRom(BIOS_ROM);
   while(gameBoy.cpu.tick());
 });
