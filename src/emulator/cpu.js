@@ -2,8 +2,12 @@ import { opCodes } from './opCodes.js';
 import { prefixOpCodes } from './opCodes.js';
 import { MemoryMap } from './memoryMap.js';
 
-export class Cpu {
+const ZERO_FLAG       = 0b10000000
+const NEGATIVE_FLAG   = 0b01000000
+const HALF_CARRY_FLAG = 0b00100000
+const CARRY_FLAG      = 0b00010000
 
+export class Cpu {
   /**
    * 
    * @param {MemoryMap} memoryMap 
@@ -56,9 +60,20 @@ export class Cpu {
     this.reg[r2] = value & 0xFF;
   }
 
-  // fz: function(i,as) { Z80._r.f=0; if(!(i&255)) Z80._r.f|=128; Z80._r.f|=as?0x40:0; },
-  zeroFlag(register){
-    this.reg.f = register === 0 ? 0x80 : 0x00;
+  zeroFlag(value) {
+    if((value && 0xFF) === 0) {
+      this.reg.f |= ZERO_FLAG;
+    } else {
+      this.reg.f &= 0xFF ^ ZERO_FLAG;
+    }
+  }
+
+  halfCarryFlag(value) {
+    if((value & 0x0F) === 0) {
+      this.reg.f |= HALF_CARRY_FLAG;
+    } else {
+      this.reg.f &= 0xFF ^ HALF_CARRY_FLAG;
+    }
   }
 
   static tokenize(label) {
@@ -180,7 +195,9 @@ export class Cpu {
    * @param {string} register      Register name (a,b,c,d,e,h,l,(hl),#).
    */
   xor_r(register) {
-    this.reg.a ^= this.reg[register]; this.zeroFlag(this.reg.a);
+    this.reg.a ^= this.reg[register];
+    this.reg.f = 0x00;
+    this.zeroFlag(this.reg.a);
   }
 
   /**
@@ -222,7 +239,9 @@ export class Cpu {
    * @param {string} register       Register name (a,b,c,d,e,h,l,(hl)).
    */
   bit_b_r(bit, register) {
-    this.reg.f = ((this.reg[register] & (2**bit)) ? 0x00 : 0x80) + 0x20;
+    this.zeroFlag(this.reg[register] & (2**bit));
+    this.reg.f &= 0xFF ^ NEGATIVE_FLAG;
+    this.reg.f |= HALF_CARRY_FLAG;
   }
 
   /**
@@ -272,7 +291,11 @@ export class Cpu {
    * C - Not affected.
    */
   inc_r(register) {
-    this.reg[register]++;
+    const value = (this.reg[register] & 0xFF) + 1
+    this.reg[register] = (this.reg[register] & 0xFF00) | value
+    this.zeroFlag(this.reg[register])
+    this.reg.f &= 0xFF ^ NEGATIVE_FLAG
+    this.halfCarryFlag(this.reg[register])
   }
 
   ld_r___rr__(register, reg_location) {

@@ -87,7 +87,6 @@ test('LD (HL-),A (0x32)', () => {
   assert.equal(gameBoy.memoryMap.read8(0x9FFF), 0xAA);
 });
 
-
 test('LD (HL), A', () => {
   let rom = [0x77];
   gameBoy.cpu.reg.a = 0xBB;
@@ -115,19 +114,22 @@ test('XOR A (0xAF)', () => {
   cpu({ a: 0x00, f: 0x80, cycles: 4, pc: 1 });
 });
 
-// Set zero flag (F/Z) if the 7th bit of the register H is 0. Always set flag half carry (F/H).
-test('BIT 7,H (0xCB 0x7C)', () => {
+// Set zero flag (F/Z) if the 7th bit of the register H is 0.
+// Always reset the N flag
+// Always set flag half carry (F/H).
+test('BIT 7, H (0xCB 0x7C)', () => {
   let rom = [0xCB, 0x7C];
-  gameBoy.cpu.reg.h = 0x80;
+  gameBoy.cpu.reg.f = 0b11010000;
+  gameBoy.cpu.reg.h = 0b10000000;
   run(rom);
-  cpu({ f: 0x20, cycles:12, pc: 2 });
+  cpu({ f: 0b00110000, cycles:12, pc: 2 });
 });
 
 test('BIT 7, H (0xCB 0x7C) - Zero', () => {
   let rom = [0xCB, 0x7C];
   gameBoy.cpu.reg.h = 0x00;
   run(rom);
-  cpu({ f: 0xA0, cycles:12, pc: 2 });
+  cpu({ f: 0b10100000, cycles:12, pc: 2 });
 });
 
 test('LD (C), A (0xE2)', () => {

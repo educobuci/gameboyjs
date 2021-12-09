@@ -15,13 +15,14 @@ export const opCodes = [
   i(0x21, 'ld hl, nn',  12, 2),
   i(0x26, 'ld h, n',    8, 1),
   i(0x2E, 'ld l, n',    8, 1),
-	i(0x31, 'ld sp, nn',  12, 2),
+  i(0x31, 'ld sp, nn',  12, 2),
   i(0x32, 'ld (hld), a',8),
   i(0x3E, 'ld a, n',    8, 1),
   i(0x77, 'ld (hl), a', 8, 4),
-	i(0xA8, 'xor b',      4),
-	i(0xAF, 'xor a',      4),
+  i(0xA8, 'xor b',      4),
+  i(0xAF, 'xor a',      4),
   i(0xCB, 'prefix',     4),
+  i(0xCD, 'call a16',   4),
   i(0xE2, 'ld (c), a',  8),
 ];
 
